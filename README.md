@@ -1,5 +1,11 @@
 # lore-connectors
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/itsthelore/lore-connectors/main/rac/assets/images/lore-header-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/itsthelore/lore-connectors/main/rac/assets/images/lore-header-light.png">
+  <img alt="Lore — agents that know why. Deterministic. Read-only. No RAG, no guessing." src="https://raw.githubusercontent.com/itsthelore/lore-connectors/main/rac/assets/images/lore-header-light.png">
+</picture>
+
 <p align="center">
 <a href="#quickstart">Quickstart</a> ·
 <a href="#how-it-compares">How it compares</a> ·
