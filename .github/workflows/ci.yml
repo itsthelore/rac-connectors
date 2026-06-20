@@ -7,6 +7,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Reusable: the release workflow calls this so a publish is gated on the
+  # same lint + test suite that guards every push and PR.
+  workflow_call:
 
 permissions:
   contents: read
@@ -17,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # setuptools-scm derives the version from git tags; fetch them so the
+          # editable install can resolve a version.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v6
         with:
@@ -45,6 +52,8 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v6
         with:

@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "lore-connectors"
-version = "0.1.0"
+# Version is derived from the git tag by setuptools-scm (mirrors rac-core).
+# Release flow: tag vX.Y.Z -> the build is version X.Y.Z. No manual edits.
+dynamic = ["version"]
 description = "Outbound connectors that push Lore's (RAC) corpus export into external memory, RAG, and graph backends."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -42,6 +44,9 @@ lore-connect = "lore_connectors.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools_scm]
+# Version comes from git tags (vX.Y.Z). Untagged builds get a dev version.
 
 [tool.ruff]
 line-length = 88
