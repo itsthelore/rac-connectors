@@ -1,25 +1,82 @@
 # lore-connectors
 
-**Outbound connectors that push [Lore](https://github.com/itsthelore/rac-core)'s
-product knowledge into the memory, RAG, and graph backends your team already
-runs** — so an agent can recall fuzzily there, then **verify in Lore**.
+<p align="center">
+<a href="#quickstart">Quickstart</a> ·
+<a href="#how-it-compares">How it compares</a> ·
+<a href="#how-it-works">How it works</a> ·
+<a href="#add-a-backend">Add a backend</a> ·
+<a href="https://github.com/itsthelore/rac-core">Lore / RAC</a>
+</p>
 
-This is a companion to **Lore** (the product) / **RAC** (the engine — package
-`requirements-as-code`, repo
-[`itsthelore/rac-core`](https://github.com/itsthelore/rac-core)). RAC keeps a
-team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown
-and serves them read-only over MCP. This repo holds the **one-way, outbound**
-connectors that ship RAC's export payloads into external backends.
+<p align="center">
+<a href="https://github.com/itsthelore/lore-connectors/actions/workflows/ci.yml"><img src="https://github.com/itsthelore/lore-connectors/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python">
+<a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/types-Mypy-blue.svg" alt="Typed"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License: Apache 2.0"></a>
+</p>
 
-It is a *consumer of a stable export contract*, not part of the engine. No
-embeddings, vectors, or LLM ever run here — those live in the backend. If a
-connector needs the contract to change, that is a change in `rac-core`, never
-worked around from this side.
+> **Push the decisions your team already recorded into the memory and RAG tools your agent already uses — so it can recall fuzzily there, then verify in Lore.**
 
-## How it fits together
+lore-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. The first connector is **Supermemory**.
 
-```
-rac export rac/ --documents        # RAC emits one JSON line per artifact
+## How it compares
+
+A connector isn't a sync tool or a second source of truth — it keeps a fuzzy
+backend **fresh** so an agent can recall loosely, then return to Lore for the
+exact, current decision. Recall fuzzily, verify in Lore.
+
+| | Lore | The backend (Supermemory / RAG / memory) |
+|---|---|---|
+| Good at | the exact, current decision | finding what's *near* a question |
+| Retrieval | deterministic, reproducible | similarity-ranked, varies by run |
+| Role | source of truth, read-only | a fast index this connector keeps fresh |
+| Direction | the agent verifies here | this connector pushes here, one-way |
+
+## Quickstart
+
+1. **Install** the connector (with the Supermemory backend extra):
+
+   ```bash
+   pip install -e '.[supermemory]'
+   ```
+
+2. **Authenticate** the backend via the environment (never hard-coded):
+
+   ```bash
+   export SUPERMEMORY_API_KEY=sk-...
+   ```
+
+3. **Push** the corpus — pipe a `rac export --documents` stream straight in:
+
+   ```bash
+   rac export rac/ --documents | lore-connect supermemory
+   ```
+
+4. **Preview** first if you like — `--dry-run` calls no API:
+
+   ```bash
+   rac export rac/ --documents | lore-connect supermemory --dry-run
+   ```
+
+Re-running is idempotent: each record upserts on its canonical Lore `id`, so a
+re-push updates rather than duplicates.
+
+## Install
+
+| Command | Gets you |
+|---|---|
+| `pip install -e .` | the `lore-connect` CLI + the connector library |
+| `pip install -e '.[supermemory]'` | + the Supermemory backend SDK (live push) |
+| `pip install -e '.[dev]'` | + ruff, mypy, and pytest for development |
+
+Requires Python 3.11+. The core install and the whole test-suite are
+dependency-free — provider SDKs are optional extras, so CI never needs a live
+backend.
+
+## How it works
+
+```text
+rac export rac/ --documents        # Lore emits one JSON line per artifact
         │
         ▼
 lore-connect supermemory           # this repo: upsert each record into the backend
@@ -27,61 +84,21 @@ lore-connect supermemory           # this repo: upsert each record into the back
         ▼
 Supermemory  (fuzzy, associative recall)
         │
-        ▼  agent recalls a candidate, then…
+        ▼  the agent recalls a candidate by id, then…
 get_artifact / rac resolve         # …verifies the authoritative text in Lore
 ```
 
-The connector only keeps the backend **fresh**. The *verify-in-Lore* loop — re-fetch
-the authoritative artifact by `id`, drop retired ones by `status`, act on Lore's
-verbatim text — is the reading agent's job, not this connector's.
+- **One-way, outbound only.** The connector pushes to the backend and never
+  pulls, re-ranks, or routes; the verify-in-Lore loop is the reading agent's
+  job, not this connector's.
+- **Idempotent on the canonical `id`.** Each record maps to
+  `add(content=text, container_tag=metadata.source, metadata={id, type, status, …}, custom_id=id)`,
+  so re-exporting and re-pushing updates the stored copy instead of duplicating
+  it.
+- **No embeddings here.** The backend embeds; the connector only ships text and
+  metadata (rac-core ADR-002, ADR-066).
 
-## First connector: Supermemory
-
-A one-way push: read a `rac export --documents` JSON Lines stream and upsert each
-record into [Supermemory](https://supermemory.ai).
-
-```bash
-pip install -e '.[supermemory]'
-export SUPERMEMORY_API_KEY=sk-...
-
-# Push the whole corpus (idempotent — re-running updates, never duplicates):
-rac export rac/ --documents | lore-connect supermemory
-
-# Preview without calling the API:
-rac export rac/ --documents | lore-connect supermemory --dry-run
-
-# Read from a file instead of stdin:
-lore-connect supermemory --input corpus.jsonl
-```
-
-Each record maps to a Supermemory upsert:
-
-```
-record  →  add(content=text,
-               container_tag=metadata.source,
-               metadata={id, type, status, title, path, …},
-               custom_id=id)
-```
-
-- **One-way / outbound only.** Pushes to the backend; never pulls, re-ranks, or
-  routes.
-- **Idempotent on the canonical `id`.** `custom_id=id` makes a re-push an update,
-  not a duplicate.
-- **No embeddings here.** Supermemory embeds; the connector only ships text +
-  metadata.
-- **`--dry-run`** prints what would be sent without calling the API.
-- **Auth via `SUPERMEMORY_API_KEY`** — never hard-coded.
-
-### Flags
-
-| Flag | Meaning |
-| --- | --- |
-| `--dry-run` | Print what would be sent; make no API call. |
-| `--input`, `-i` | Read JSONL from a file (default: stdin; `-` also means stdin). |
-| `--strict` | Fail on a malformed line instead of skipping it. |
-| `--verbose`, `-v` | Print per-record actions on a live push too. |
-
-## The export contract consumed
+## The export contract
 
 `rac export <dir> --documents` emits JSON Lines, one record per artifact:
 
@@ -93,13 +110,29 @@ record  →  add(content=text,
 
 `text` is the Markdown body (backends embed text, not HTML); `id` is the
 canonical handle for the verify-in-Lore round-trip; `status` lets a reader drop
-retired/superseded items. The contract is additive and stable — connectors
-depend only on it.
+retired or superseded items. The contract is additive and stable (rac-core
+ADR-007) — connectors depend only on it.
 
-## Adding a backend
+## Python API
 
-One repo, one module per backend (see `rac/decisions/`, ADR-002). A new backend
-is a module under `src/lore_connectors/` implementing one seam:
+The connector is a library too. Parse a `--documents` stream into records and
+push them through any backend module:
+
+```python
+from lore_connectors import parse_documents
+from lore_connectors.supermemory import SupermemoryConnector, client_from_env
+
+records = parse_documents(open("corpus.jsonl"))
+summary = SupermemoryConnector(client_from_env()).push(records)
+print(summary.summary_line())       # -> "supermemory push: 263 pushed, 0 skipped"
+```
+
+Pass `dry_run=True` to preview without a client or an API call.
+
+## Add a backend
+
+One repo, one module per backend (rac-core ADR-073; this repo's ADR-002). A new
+backend is a module under `src/lore_connectors/` implementing one outbound seam:
 
 ```python
 class Connector(Protocol):
@@ -108,22 +141,65 @@ class Connector(Protocol):
 ```
 
 Record parsing, the CLI, dry-run, and the summary shape are shared; a module
-provides the upsert mapping behind a thin, mockable client. Named future targets
+supplies the upsert mapping behind a thin, mockable client. Named future targets
 (shape only, not built): documents → Mem0, Zep, Letta, Cognee, Pinecone,
 Weaviate, Qdrant, Chroma, Milvus, pgvector, LanceDB; graph → Neo4j, Zep
 Graphiti, Cognee, Microsoft GraphRAG.
 
-## Development
+## Who it's for
 
-```bash
-pip install -e '.[dev]'
-pytest          # no live API — drives a fake client
-ruff check .
+- **Teams running Lore** who also run a memory or RAG backend and want the
+  agent to recall fuzzily there, then verify against the authoritative corpus.
+- **Teams who want semantic recall over their decisions** without putting a
+  fuzzy component inside Lore's deterministic serving path.
+- **Anyone wiring Lore's export into the backend they already operate** — the
+  export contract is the product; this repo is the reference adapter.
+
+## Documentation
+
+This repo consumes Lore's export contract; the engine and its CLI are
+documented with Lore.
+
+- [Lore / RAC](https://github.com/itsthelore/rac-core) — the engine, CLI, and MCP server
+- [CLI reference — `rac export`](https://itsthelore.github.io/rac-core/cli/#export) — the `--documents` / `--graph` contract this consumes
+
+## Origin
+
+lore-connectors is the **connector companion** to Lore / RAC. rac-core ADR-073
+settles the topology: backend connectors are export-contract consumers, so they
+consolidate into **one** repo with one module per backend — not a repo per
+provider, and never inside the engine (it stays pure-Python, AI-optional, and
+offline). This repo dogfoods Lore for its own decisions under `rac/`.
+
+## Repository layout
+
+```text
+lore-connectors/
+  src/lore_connectors/   the connector library: the documents reader, the shared
+                         push seam, the lore-connect CLI, and one module per
+                         backend (supermemory/ first)
+  tests/                 the suite, driven against a fake client — no live API
+  rac/                   the dogfood corpus: this repo's own decisions (ADRs),
+                         keyed LCON
+  .github/workflows/     CI — ruff, mypy, and the test-suite
 ```
 
-This repo dogfoods Lore: its own decisions live in `rac/decisions/` and are
-validated with the `rac` CLI (`rac validate rac/`).
+## Test
+
+```bash
+pip install -e .[dev]
+python -m pytest
+```
+
+`ruff check`, `ruff format --check`, and `mypy src/` run in CI alongside the
+test-suite across Python 3.11–3.13.
+
+## Project status
+
+Early and evolving alongside Lore. The Supermemory connector ships today;
+further backends slot in as new modules (see [Add a backend](#add-a-backend)).
+Contributions, ideas, and experiments welcome.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE). Matches `rac-core`.
+[Apache License 2.0](LICENSE). Matches `rac-core`.
