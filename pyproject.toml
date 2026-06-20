@@ -32,8 +32,9 @@ Engine = "https://github.com/itsthelore/rac-core"
 
 [project.optional-dependencies]
 # The live Supermemory push needs the provider SDK; the core install and the
-# whole test-suite (which drives a fake client) stay dependency-free.
-supermemory = ["supermemory>=3.0"]
+# whole test-suite (which drives a fake client) stay dependency-free. Pinned to
+# the v3 major whose add() shape the adapter is verified against.
+supermemory = ["supermemory>=3,<4"]
 dev = ["pytest>=7.0", "ruff", "mypy"]
 
 [project.scripts]
