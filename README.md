@@ -40,10 +40,11 @@ exact, current decision. Recall fuzzily, verify in Lore.
 
 ## Quickstart
 
-1. **Install** the connector (with the Supermemory backend extra):
+1. **Install** the connector with the Supermemory backend extra (see
+   [Install](#install) for the from-source command until it's on PyPI):
 
    ```bash
-   pip install -e '.[supermemory]'
+   pip install 'lore-connectors[supermemory]'
    ```
 
 2. **Authenticate** the backend via the environment (never hard-coded):
@@ -69,15 +70,37 @@ re-push updates rather than duplicates.
 
 ## Install
 
-| Command | Gets you |
-|---|---|
-| `pip install -e .` | the `lore-connect` CLI + the connector library |
-| `pip install -e '.[supermemory]'` | + the Supermemory backend SDK (live push) |
-| `pip install -e '.[dev]'` | + ruff, mypy, and pytest for development |
+There is nothing to build — it's pure Python. Installing puts a `lore-connect`
+command on your PATH.
 
-Requires Python 3.11+. The core install and the whole test-suite are
-dependency-free — provider SDKs are optional extras, so CI never needs a live
-backend.
+**From PyPI** (once published — the name is reserved):
+
+```bash
+pip install 'lore-connectors[supermemory]'
+```
+
+**From source today** (pre-release — install straight from the repo):
+
+```bash
+# one-liner, no clone:
+pip install 'lore-connectors[supermemory] @ git+https://github.com/itsthelore/lore-connectors.git'
+
+# or from a clone (editable, for hacking on it):
+git clone https://github.com/itsthelore/lore-connectors.git
+cd lore-connectors
+pip install -e '.[supermemory]'
+```
+
+| Extra | Gets you |
+|---|---|
+| *(none)* | the `lore-connect` CLI + the connector library + `--dry-run` |
+| `[supermemory]` | + the Supermemory SDK, needed for a live push |
+| `[dev]` | + ruff, mypy, and pytest for development |
+
+Requires Python 3.11+, and the [`rac`](https://github.com/itsthelore/rac-core)
+engine (`pip install requirements-as-code`) to produce the export. The core
+install and the whole test-suite are dependency-free — provider SDKs are
+optional extras, so CI never needs a live backend.
 
 ## How it works
 
@@ -103,6 +126,35 @@ get_artifact / rac resolve         # …verifies the authoritative text in Lore
   it.
 - **No embeddings here.** The backend embeds; the connector only ships text and
   metadata (rac-core ADR-002, ADR-066).
+
+## Run it in CI
+
+`lore-connect` is a one-shot command — it pushes and exits — so keeping a
+backend fresh is just a job that runs the pipe whenever the corpus changes. A
+GitHub Actions step on merge to `main`:
+
+```yaml
+name: Sync corpus to Supermemory
+on:
+  push:
+    branches: [main]
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - run: pip install requirements-as-code 'lore-connectors[supermemory]'
+      - run: rac export rac/ --documents | lore-connect supermemory
+        env:
+          SUPERMEMORY_API_KEY: ${{ secrets.SUPERMEMORY_API_KEY }}
+```
+
+The same one-liner works from a cron job or a git post-commit hook. Because the
+push is idempotent on the canonical `id`, running it on every change only
+updates — it never duplicates — so you don't need to diff or prune first.
 
 ## The export contract
 
@@ -135,10 +187,28 @@ print(summary.summary_line())       # -> "supermemory push: 263 pushed, 0 skippe
 
 Pass `dry_run=True` to preview without a client or an API call.
 
+## One package, many backends
+
+There is **one** `lore-connectors` package on PyPI, not one per provider. As
+more backends land, you don't install or learn a new tool — you:
+
+- **pick the backend with a CLI subcommand:** `lore-connect supermemory`,
+  later `lore-connect mem0`, `lore-connect neo4j`, …; and
+- **pull only the SDKs you use, as extras:**
+  `pip install 'lore-connectors[supermemory,mem0]'`. The base install and the
+  test-suite stay dependency-free; a provider's SDK arrives only with its extra.
+
+This is a recorded decision, not a convenience: rac-core ADR-073 keeps all
+backend connectors in one repo (the export contract is the product, so most
+backends need no per-provider package), and this repo's ADR-002 fixes "one
+outbound `push` seam, one module per backend, one CLI subcommand each." A
+provider only graduates to its own package if it grows into an installable
+product with independent cadence — the documented escape hatch, not the default.
+
 ## Add a backend
 
-One repo, one module per backend (rac-core ADR-073; this repo's ADR-002). A new
-backend is a module under `src/lore_connectors/` implementing one outbound seam:
+A new backend is a module under `src/lore_connectors/` implementing one outbound
+seam — record parsing, the CLI, dry-run, and the summary shape are shared:
 
 ```python
 class Connector(Protocol):
@@ -146,11 +216,11 @@ class Connector(Protocol):
     def push(self, records: Iterable[Record], *, dry_run: bool = False) -> PushSummary: ...
 ```
 
-Record parsing, the CLI, dry-run, and the summary shape are shared; a module
-supplies the upsert mapping behind a thin, mockable client. Named future targets
-(shape only, not built): documents → Mem0, Zep, Letta, Cognee, Pinecone,
-Weaviate, Qdrant, Chroma, Milvus, pgvector, LanceDB; graph → Neo4j, Zep
-Graphiti, Cognee, Microsoft GraphRAG.
+The module supplies the upsert mapping behind a thin, mockable client, and adds
+its subcommand and optional `[backend]` extra. Named future targets (shape only,
+not built): documents → Mem0, Zep, Letta, Cognee, Pinecone, Weaviate, Qdrant,
+Chroma, Milvus, pgvector, LanceDB; graph → Neo4j, Zep Graphiti, Cognee,
+Microsoft GraphRAG.
 
 ## Who it's for
 
