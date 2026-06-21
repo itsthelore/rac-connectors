@@ -23,7 +23,7 @@
 
 > **Push the decisions your team already recorded into the memory and RAG tools your agent already uses — so it can recall fuzzily there, then verify in Lore.**
 
-lore-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. The first connector is **Supermemory**.
+lore-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. Two targets ship today: **Supermemory** for the documents projection, and **Neo4j** for the typed relationship graph.
 
 ## How it compares
 
@@ -94,7 +94,8 @@ pip install -e '.[supermemory]'
 | Extra | Gets you |
 |---|---|
 | *(none)* | the `lore-connect` CLI + the connector library + `--dry-run` |
-| `[supermemory]` | + the Supermemory SDK, needed for a live push |
+| `[supermemory]` | + the Supermemory SDK, needed for a live documents push |
+| `[neo4j]` | + the Neo4j driver, needed for a live graph push |
 | `[dev]` | + ruff, mypy, and pytest for development |
 
 Requires Python 3.11+, and the [`rac`](https://github.com/itsthelore/rac-core)
@@ -156,6 +157,36 @@ The same one-liner works from a cron job or a git post-commit hook. Because the
 push is idempotent on the canonical `id`, running it on every change only
 updates — it never duplicates — so you don't need to diff or prune first.
 
+## Graph connector — Neo4j
+
+The other export projection, `rac export --graph`, is Lore's *real, validated*
+relationship graph — typed nodes and edges (`supersedes`, `related_decisions`,
+…). The Neo4j connector loads it so an agent can traverse the actual decision
+graph instead of one an LLM inferred from prose:
+
+```bash
+pip install 'lore-connectors[neo4j]'
+export NEO4J_URI=bolt://localhost:7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=...
+
+rac export rac/ --graph | lore-connect neo4j            # upsert nodes + edges
+rac export rac/ --graph | lore-connect neo4j --dry-run  # preview, no connection
+```
+
+- **Idempotent via Cypher `MERGE`** on the canonical `id` — nodes `MERGE
+  (n:Artifact {id})`, edges `MERGE (a)-[r:REL {type}]->(b)` — so a re-push
+  updates in place and never duplicates a node or relationship.
+- **Faithful to the export.** Undirected edges (`directed:false`) are written
+  once carrying `directed=false`; unresolved references (`resolved:false`) are
+  skipped, never written as phantom nodes.
+- **Injection-safe.** Every node and edge value is a query parameter; only the
+  fixed labels `Artifact`/`REL` are interpolated, so no corpus content reaches
+  Cypher as code.
+- **Outbound only.** It writes the graph and never queries, traverses, or
+  analyses — the verify-in-Lore loop stays the agent's job.
+
+The design and decision behind this live in the corpus: `rac/designs/`
+(graph-connector-shape) and `rac/decisions/` (ADR-003).
+
 ## The export contract
 
 `rac export <dir> --documents` emits JSON Lines, one record per artifact:
@@ -168,8 +199,21 @@ updates — it never duplicates — so you don't need to diff or prune first.
 
 `text` is the Markdown body (backends embed text, not HTML); `id` is the
 canonical handle for the verify-in-Lore round-trip; `status` lets a reader drop
-retired or superseded items. The contract is additive and stable (rac-core
-ADR-007) — connectors depend only on it.
+retired or superseded items.
+
+`rac export <dir> --graph` emits one JSON object of typed nodes and edges:
+
+```json
+{"schema_version":"1","source":"rac",
+ "nodes":[{"id":"RAC-…","type":"decision","status":"Accepted","title":"…"}],
+ "edges":[{"source":"RAC-…","target":"RAC-…","type":"supersedes",
+           "directed":true,"resolved":true}]}
+```
+
+`edges[].type` is the real relationship kind with its registry direction;
+`resolved:false` means the reference didn't resolve and `target` is literal text.
+Both contracts are additive and stable (rac-core ADR-007) — connectors depend
+only on them.
 
 ## Python API
 
@@ -185,7 +229,18 @@ summary = SupermemoryConnector(client_from_env()).push(records)
 print(summary.summary_line())       # -> "supermemory push: 263 pushed, 0 skipped"
 ```
 
-Pass `dry_run=True` to preview without a client or an API call.
+…or parse a `--graph` object and push it through a graph backend:
+
+```python
+from lore_connectors import parse_graph
+from lore_connectors.neo4j import Neo4jConnector, client_from_env
+
+graph = parse_graph(open("graph.json").read())
+summary = Neo4jConnector(client_from_env()).push_graph(graph)
+print(summary.summary_line())       # -> "neo4j push: 1494 pushed, 0 skipped"
+```
+
+Pass `dry_run=True` to preview either push without a client or a connection.
 
 ## One package, many backends
 
