@@ -5,9 +5,8 @@ One subcommand per backend. The documents backends read a ``rac export
 object::
 
     rac export rac/ --documents | lore-connect supermemory
-    rac export rac/ --documents | lore-connect supermemory --dry-run
+    rac export rac/ --documents | lore-connect mem0 --dry-run
     rac export rac/ --graph     | lore-connect neo4j
-    rac export rac/ --graph     | lore-connect neo4j --dry-run
 """
 
 from __future__ import annotations
@@ -17,8 +16,11 @@ import sys
 from collections.abc import Iterable, Iterator
 from typing import TextIO
 
-from .base import PushSummary
+from .base import Connector, PushSummary
 from .graph import MalformedGraphError, parse_graph
+from .mem0 import Mem0Connector
+from .mem0.client import MissingApiKeyError as Mem0MissingApiKeyError
+from .mem0.client import client_from_env as mem0_client_from_env
 from .neo4j import Neo4jConnector
 from .neo4j.client import MissingCredentialsError
 from .neo4j.client import client_from_env as neo4j_client_from_env
@@ -88,8 +90,36 @@ def _run_supermemory(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_mem0(args: argparse.Namespace) -> int:
+    connector: Connector = Mem0Connector()
+    stream, owned = _open_stream(args.input)
+    try:
+        if not args.dry_run:
+            try:
+                connector = Mem0Connector(mem0_client_from_env())
+            except Mem0MissingApiKeyError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 2
+        try:
+            summary = _push_with_skips(
+                connector, stream, dry_run=args.dry_run, strict=args.strict
+            )
+        except MalformedRecordError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    finally:
+        if owned:
+            stream.close()
+
+    if args.dry_run or args.verbose:
+        for action in summary.actions:
+            print(action)
+    print(summary.summary_line(), file=sys.stderr)
+    return 0
+
+
 def _push_with_skips(
-    connector: SupermemoryConnector,
+    connector: Connector,
     stream: Iterable[str],
     *,
     dry_run: bool,
@@ -175,6 +205,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print per-record actions on a live push too.",
     )
     sm.set_defaults(func=_run_supermemory)
+
+    mem = sub.add_parser(
+        "mem0",
+        help="Upsert documents into Mem0 (idempotent by container resync).",
+    )
+    mem.add_argument(
+        "--input",
+        "-i",
+        default=None,
+        help="JSONL file to read (default: stdin). '-' also means stdin.",
+    )
+    mem.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be sent without calling the API.",
+    )
+    mem.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on a malformed line instead of skipping it.",
+    )
+    mem.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print per-record actions on a live push too.",
+    )
+    mem.set_defaults(func=_run_mem0)
 
     neo = sub.add_parser(
         "neo4j",
