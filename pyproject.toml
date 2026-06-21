@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lore-connectors"
+# Version is derived from the git tag by setuptools-scm (mirrors rac-core).
+# Release flow: tag vX.Y.Z -> the build is version X.Y.Z. No manual edits.
+dynamic = ["version"]
+description = "Outbound connectors that push Lore's (RAC) corpus export into external memory, RAG, and graph backends."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Tom Ballard" }]
+keywords = ["lore", "rac", "requirements-as-code", "rag", "memory", "supermemory", "connector"]
+dependencies = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Homepage = "https://github.com/itsthelore/lore-connectors"
+Repository = "https://github.com/itsthelore/lore-connectors"
+Issues = "https://github.com/itsthelore/lore-connectors/issues"
+Engine = "https://github.com/itsthelore/rac-core"
+
+[project.optional-dependencies]
+# The live Supermemory push needs the provider SDK; the core install and the
+# whole test-suite (which drives a fake client) stay dependency-free. Pinned to
+# the v3 major whose add() shape the adapter is verified against.
+supermemory = ["supermemory>=3,<4"]
+dev = ["pytest>=7.0", "ruff", "mypy"]
+
+[project.scripts]
+lore-connect = "lore_connectors.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools_scm]
+# Version comes from git tags (vX.Y.Z). Untagged builds get a dev version.
+
+[tool.ruff]
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["lore_connectors"]
+
+# The Supermemory SDK is an optional extra, imported lazily; CI type-checks
+# without it installed, so its missing stubs are not an error.
+[[tool.mypy.overrides]]
+module = ["supermemory.*"]
+ignore_missing_imports = true
