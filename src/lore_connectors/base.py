@@ -13,6 +13,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
+from .graph import Graph
 from .records import Record
 
 
@@ -20,9 +21,10 @@ from .records import Record
 class PushSummary:
     """The outcome of a push, the same shape for every backend.
 
-    ``actions`` records one line per record describing what was (or, under a dry
+    ``actions`` records one line per item describing what was (or, under a dry
     run, would be) sent — keyed by canonical ``id`` so a re-push is legible as
-    the idempotent update it is.
+    the idempotent update it is. The same summary serves the documents push (one
+    record per line) and the graph push (nodes and edges).
     """
 
     backend: str
@@ -31,13 +33,16 @@ class PushSummary:
     dry_run: bool = False
     actions: list[str] = field(default_factory=list)
 
-    def record_push(self, record_id: str, detail: str) -> None:
+    def record_push(self, item_id: str, detail: str) -> None:
         self.pushed += 1
-        self.actions.append(f"push {record_id}: {detail}")
+        self.actions.append(f"push {item_id}: {detail}")
+
+    def record_skip_item(self, label: str, reason: str) -> None:
+        self.skipped += 1
+        self.actions.append(f"skip {label}: {reason}")
 
     def record_skip(self, line_number: int, reason: str) -> None:
-        self.skipped += 1
-        self.actions.append(f"skip line {line_number}: {reason}")
+        self.record_skip_item(f"line {line_number}", reason)
 
     def summary_line(self) -> str:
         mode = "dry-run" if self.dry_run else "push"
@@ -61,5 +66,28 @@ class Connector(Protocol):
 
         With ``dry_run=True`` the connector must describe what it would send
         without making any network call.
+        """
+        ...
+
+
+@runtime_checkable
+class GraphConnector(Protocol):
+    """Outbound-only sink for the ``--graph`` projection (typed nodes + edges).
+
+    The sibling of :class:`Connector` for graph backends. The input shape differs
+    — one whole :class:`~lore_connectors.graph.Graph`, not a stream of records —
+    so it is a separate seam (ADR-003), but it shares the CLI, the
+    :class:`PushSummary`, and the dry-run contract. ``push_graph`` must be
+    idempotent on each node's and edge's canonical identity so re-running an
+    export updates rather than duplicates.
+    """
+
+    name: str
+
+    def push_graph(self, graph: Graph, *, dry_run: bool = False) -> PushSummary:
+        """Upsert a graph's nodes and edges, returning a :class:`PushSummary`.
+
+        With ``dry_run=True`` the connector must describe what it would write
+        without connecting to the backend.
         """
         ...

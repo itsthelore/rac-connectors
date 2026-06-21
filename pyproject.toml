@@ -37,6 +37,9 @@ Engine = "https://github.com/itsthelore/rac-core"
 # whole test-suite (which drives a fake client) stay dependency-free. Pinned to
 # the v3 major whose add() shape the adapter is verified against.
 supermemory = ["supermemory>=3,<4"]
+# The live Neo4j push needs the official driver; the core install and the
+# fake-driven test-suite stay dependency-free. Pinned to the v5 major.
+neo4j = ["neo4j>=5,<6"]
 dev = ["pytest>=7.0", "ruff", "mypy"]
 
 [project.scripts]
@@ -62,8 +65,8 @@ testpaths = ["tests"]
 python_version = "3.11"
 packages = ["lore_connectors"]
 
-# The Supermemory SDK is an optional extra, imported lazily; CI type-checks
-# without it installed, so its missing stubs are not an error.
+# The Supermemory SDK and Neo4j driver are optional extras, imported lazily; CI
+# type-checks without them installed, so their missing stubs are not an error.
 [[tool.mypy.overrides]]
-module = ["supermemory.*"]
+module = ["supermemory.*", "neo4j.*"]
 ignore_missing_imports = true
