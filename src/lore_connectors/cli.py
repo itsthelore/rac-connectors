@@ -1,11 +1,13 @@
 """``lore-connect`` — the CLI entrypoint for the lore-connectors companion.
 
-Reads a ``rac export --documents`` JSON Lines stream (stdin or ``--input``) and
-pushes it into a backend. One subcommand per backend; Supermemory is the first::
+One subcommand per backend. The documents backends read a ``rac export
+--documents`` JSON Lines stream; the graph backends read a ``rac export --graph``
+object::
 
     rac export rac/ --documents | lore-connect supermemory
     rac export rac/ --documents | lore-connect supermemory --dry-run
-    lore-connect supermemory --input corpus.jsonl
+    rac export rac/ --graph     | lore-connect neo4j
+    rac export rac/ --graph     | lore-connect neo4j --dry-run
 """
 
 from __future__ import annotations
@@ -16,6 +18,10 @@ from collections.abc import Iterable, Iterator
 from typing import TextIO
 
 from .base import PushSummary
+from .graph import MalformedGraphError, parse_graph
+from .neo4j import Neo4jConnector
+from .neo4j.client import MissingCredentialsError
+from .neo4j.client import client_from_env as neo4j_client_from_env
 from .records import MalformedRecordError, Record, parse_documents
 from .supermemory import SupermemoryConnector
 from .supermemory.client import MissingApiKeyError, client_from_env
@@ -99,6 +105,38 @@ def _push_with_skips(
     return summary
 
 
+def _run_neo4j(args: argparse.Namespace) -> int:
+    stream, owned = _open_stream(args.input)
+    try:
+        payload = stream.read()
+    finally:
+        if owned:
+            stream.close()
+
+    try:
+        graph = parse_graph(payload)
+    except MalformedGraphError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    if args.dry_run:
+        connector = Neo4jConnector()
+    else:
+        try:
+            connector = Neo4jConnector(neo4j_client_from_env())
+        except MissingCredentialsError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+
+    summary = connector.push_graph(graph, dry_run=args.dry_run)
+
+    if args.dry_run or args.verbose:
+        for action in summary.actions:
+            print(action)
+    print(summary.summary_line(), file=sys.stderr)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="lore-connect",
@@ -137,6 +175,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print per-record actions on a live push too.",
     )
     sm.set_defaults(func=_run_supermemory)
+
+    neo = sub.add_parser(
+        "neo4j",
+        help="Upsert the --graph projection into Neo4j (idempotent via MERGE).",
+    )
+    neo.add_argument(
+        "--input",
+        "-i",
+        default=None,
+        help="--graph JSON file to read (default: stdin). '-' also means stdin.",
+    )
+    neo.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the nodes/edges that would be written without connecting.",
+    )
+    neo.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print per-node/edge actions on a live push too.",
+    )
+    neo.set_defaults(func=_run_neo4j)
     return parser
 
 
