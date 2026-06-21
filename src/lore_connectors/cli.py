@@ -18,6 +18,9 @@ from typing import TextIO
 
 from .base import Connector, PushSummary
 from .graph import MalformedGraphError, parse_graph
+from .letta import LettaConnector
+from .letta.client import MissingCredentialsError as LettaMissingCredentialsError
+from .letta.client import client_from_env as letta_client_from_env
 from .mem0 import Mem0Connector
 from .mem0.client import MissingApiKeyError as Mem0MissingApiKeyError
 from .mem0.client import client_from_env as mem0_client_from_env
@@ -129,6 +132,34 @@ def _run_zep(args: argparse.Namespace) -> int:
             try:
                 connector = ZepConnector(zep_client_from_env())
             except ZepMissingApiKeyError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 2
+        try:
+            summary = _push_with_skips(
+                connector, stream, dry_run=args.dry_run, strict=args.strict
+            )
+        except MalformedRecordError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    finally:
+        if owned:
+            stream.close()
+
+    if args.dry_run or args.verbose:
+        for action in summary.actions:
+            print(action)
+    print(summary.summary_line(), file=sys.stderr)
+    return 0
+
+
+def _run_letta(args: argparse.Namespace) -> int:
+    connector: Connector = LettaConnector()
+    stream, owned = _open_stream(args.input)
+    try:
+        if not args.dry_run:
+            try:
+                connector = LettaConnector(letta_client_from_env())
+            except LettaMissingCredentialsError as exc:
                 print(f"error: {exc}", file=sys.stderr)
                 return 2
         try:
@@ -292,6 +323,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print per-record actions on a live push too.",
     )
     zep.set_defaults(func=_run_zep)
+
+    letta = sub.add_parser(
+        "letta",
+        help="Upsert documents into Letta (idempotent by archive resync).",
+    )
+    letta.add_argument(
+        "--input",
+        "-i",
+        default=None,
+        help="JSONL file to read (default: stdin). '-' also means stdin.",
+    )
+    letta.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be sent without calling the API.",
+    )
+    letta.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on a malformed line instead of skipping it.",
+    )
+    letta.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print per-record actions on a live push too.",
+    )
+    letta.set_defaults(func=_run_letta)
 
     neo = sub.add_parser(
         "neo4j",
