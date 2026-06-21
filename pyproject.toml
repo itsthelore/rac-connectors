@@ -43,6 +43,9 @@ mem0 = ["mem0ai>=0.1"]
 # The live Neo4j push needs the official driver; the core install and the
 # fake-driven test-suite stay dependency-free. Pinned to the v5 major.
 neo4j = ["neo4j>=5,<6"]
+# The live Zep push needs the Zep Cloud SDK; the core install and the
+# fake-driven test-suite stay dependency-free. Pinned to the verified v3 major.
+zep = ["zep-cloud>=3,<4"]
 dev = ["pytest>=7.0", "ruff", "mypy"]
 
 [project.scripts]
@@ -71,5 +74,5 @@ packages = ["lore_connectors"]
 # Provider SDKs are optional extras, imported lazily; CI type-checks without
 # them installed, so their missing stubs are not an error.
 [[tool.mypy.overrides]]
-module = ["supermemory.*", "mem0.*", "neo4j.*"]
+module = ["supermemory.*", "mem0.*", "neo4j.*", "zep_cloud.*"]
 ignore_missing_imports = true

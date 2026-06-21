@@ -27,6 +27,9 @@ from .neo4j.client import client_from_env as neo4j_client_from_env
 from .records import MalformedRecordError, Record, parse_documents
 from .supermemory import SupermemoryConnector
 from .supermemory.client import MissingApiKeyError, client_from_env
+from .zep import ZepConnector
+from .zep.client import MissingApiKeyError as ZepMissingApiKeyError
+from .zep.client import client_from_env as zep_client_from_env
 
 
 def _open_stream(path: str | None) -> tuple[TextIO, bool]:
@@ -98,6 +101,34 @@ def _run_mem0(args: argparse.Namespace) -> int:
             try:
                 connector = Mem0Connector(mem0_client_from_env())
             except Mem0MissingApiKeyError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 2
+        try:
+            summary = _push_with_skips(
+                connector, stream, dry_run=args.dry_run, strict=args.strict
+            )
+        except MalformedRecordError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    finally:
+        if owned:
+            stream.close()
+
+    if args.dry_run or args.verbose:
+        for action in summary.actions:
+            print(action)
+    print(summary.summary_line(), file=sys.stderr)
+    return 0
+
+
+def _run_zep(args: argparse.Namespace) -> int:
+    connector: Connector = ZepConnector()
+    stream, owned = _open_stream(args.input)
+    try:
+        if not args.dry_run:
+            try:
+                connector = ZepConnector(zep_client_from_env())
+            except ZepMissingApiKeyError as exc:
                 print(f"error: {exc}", file=sys.stderr)
                 return 2
         try:
@@ -233,6 +264,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print per-record actions on a live push too.",
     )
     mem.set_defaults(func=_run_mem0)
+
+    zep = sub.add_parser(
+        "zep",
+        help="Upsert documents into Zep (idempotent by graph resync).",
+    )
+    zep.add_argument(
+        "--input",
+        "-i",
+        default=None,
+        help="JSONL file to read (default: stdin). '-' also means stdin.",
+    )
+    zep.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be sent without calling the API.",
+    )
+    zep.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on a malformed line instead of skipping it.",
+    )
+    zep.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print per-record actions on a live push too.",
+    )
+    zep.set_defaults(func=_run_zep)
 
     neo = sub.add_parser(
         "neo4j",
