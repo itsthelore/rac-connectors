@@ -8,8 +8,8 @@
 
 <p align="center">
 <a href="#quickstart">Quickstart</a> ·
-<a href="#how-it-compares">How it compares</a> ·
 <a href="#how-it-works">How it works</a> ·
+<a href="#connectors">Connectors</a> ·
 <a href="#add-a-backend">Add a backend</a> ·
 <a href="https://github.com/itsthelore/rac-core">Lore / RAC</a>
 </p>
@@ -23,7 +23,7 @@
 
 > **Push the decisions your team already recorded into the memory and RAG tools your agent already uses — so it can recall fuzzily there, then verify in Lore.**
 
-lore-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. Two targets ship today: **Supermemory** for the documents projection, and **Neo4j** for the typed relationship graph.
+lore-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. The first connector is **Supermemory**.
 
 ## How it compares
 
@@ -40,8 +40,9 @@ exact, current decision. Recall fuzzily, verify in Lore.
 
 ## Quickstart
 
-1. **Install** the connector with the Supermemory backend extra (see
-   [Install](#install) for the from-source command until it's on PyPI):
+1. **Install** a connector — pick your backend from [Connectors](#connectors) and
+   install its extra (see [Install](#install) for the from-source command until
+   it's on PyPI):
 
    ```bash
    pip install 'lore-connectors[supermemory]'
@@ -65,8 +66,8 @@ exact, current decision. Recall fuzzily, verify in Lore.
    rac export rac/ --documents | lore-connect supermemory --dry-run
    ```
 
-Re-running is idempotent: each record upserts on its canonical Lore `id`, so a
-re-push updates rather than duplicates.
+Re-running is idempotent: a re-push updates rather than duplicates. Each
+backend's exact commands, auth, and flags live under [Connectors](#connectors).
 
 ## Install
 
@@ -94,8 +95,7 @@ pip install -e '.[supermemory]'
 | Extra | Gets you |
 |---|---|
 | *(none)* | the `lore-connect` CLI + the connector library + `--dry-run` |
-| `[supermemory]` | + the Supermemory SDK, needed for a live documents push |
-| `[neo4j]` | + the Neo4j driver, needed for a live graph push |
+| `[<backend>]` | + that backend's SDK, needed for a live push — one per connector (see [Connectors](#connectors)) |
 | `[dev]` | + ruff, mypy, and pytest for development |
 
 Requires Python 3.11+, and the [`rac`](https://github.com/itsthelore/rac-core)
@@ -128,6 +128,62 @@ get_artifact / rac resolve         # …verifies the authoritative text in Lore
 - **No embeddings here.** The backend embeds; the connector only ships text and
   metadata (rac-core ADR-002, ADR-066).
 
+## Connectors
+
+One package, one CLI: pick a backend with a subcommand (`lore-connect
+<backend>`) and pull only its SDK via the matching extra. Each connector's full
+page lives in [`docs/connectors/`](docs/connectors/); the collapsible sections
+below are generated from those pages, so this README and the pages never drift.
+
+<!-- GENERATED:CONNECTORS -->
+<!-- Generated from docs/connectors/*.md by scripts/sync_readme.py — do not edit by hand. -->
+
+<details>
+<summary><strong>Supermemory</strong> — documents → server-side embedding, idempotent on the canonical id</summary>
+
+A one-way, outbound push of the `rac export --documents` stream into
+[Supermemory](https://supermemory.ai).
+
+```bash
+pip install 'lore-connectors[supermemory]'
+export SUPERMEMORY_API_KEY=sk-...
+
+rac export rac/ --documents | lore-connect supermemory            # upsert every record
+rac export rac/ --documents | lore-connect supermemory --dry-run  # preview, no API call
+lore-connect supermemory --input corpus.jsonl                     # read a file, not stdin
+```
+
+Each record maps to a Supermemory upsert:
+
+```
+record → add(content=text,
+             container_tag=metadata.source,
+             metadata={lore id, type, status, title, path, …},
+             custom_id=id)
+```
+
+| Flag | Meaning |
+|---|---|
+| `--dry-run` | Print what would be sent; make no API call. |
+| `--input`, `-i` | Read JSONL from a file (default: stdin; `-` also means stdin). |
+| `--strict` | Fail on a malformed line instead of skipping it. |
+| `--verbose`, `-v` | Print per-record actions on a live push too. |
+
+- **Idempotent on the canonical `id`.** `custom_id=id` makes a re-push an update,
+  not a duplicate.
+- **No embeddings here.** Supermemory embeds; the connector only ships text +
+  metadata.
+- **Auth via `SUPERMEMORY_API_KEY`** — never hard-coded. Set
+  `SUPERMEMORY_BASE_URL` to point at a self-hosted instance.
+
+Decision: [`rac/decisions/`](rac/decisions) — the connector seam (ADR-002).
+
+**Full page:** [`docs/connectors/supermemory.md`](docs/connectors/supermemory.md)
+
+</details>
+
+<!-- /GENERATED:CONNECTORS -->
+
 ## Run it in CI
 
 `lore-connect` is a one-shot command — it pushes and exits — so keeping a
@@ -157,36 +213,6 @@ The same one-liner works from a cron job or a git post-commit hook. Because the
 push is idempotent on the canonical `id`, running it on every change only
 updates — it never duplicates — so you don't need to diff or prune first.
 
-## Graph connector — Neo4j
-
-The other export projection, `rac export --graph`, is Lore's *real, validated*
-relationship graph — typed nodes and edges (`supersedes`, `related_decisions`,
-…). The Neo4j connector loads it so an agent can traverse the actual decision
-graph instead of one an LLM inferred from prose:
-
-```bash
-pip install 'lore-connectors[neo4j]'
-export NEO4J_URI=bolt://localhost:7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=...
-
-rac export rac/ --graph | lore-connect neo4j            # upsert nodes + edges
-rac export rac/ --graph | lore-connect neo4j --dry-run  # preview, no connection
-```
-
-- **Idempotent via Cypher `MERGE`** on the canonical `id` — nodes `MERGE
-  (n:Artifact {id})`, edges `MERGE (a)-[r:REL {type}]->(b)` — so a re-push
-  updates in place and never duplicates a node or relationship.
-- **Faithful to the export.** Undirected edges (`directed:false`) are written
-  once carrying `directed=false`; unresolved references (`resolved:false`) are
-  skipped, never written as phantom nodes.
-- **Injection-safe.** Every node and edge value is a query parameter; only the
-  fixed labels `Artifact`/`REL` are interpolated, so no corpus content reaches
-  Cypher as code.
-- **Outbound only.** It writes the graph and never queries, traverses, or
-  analyses — the verify-in-Lore loop stays the agent's job.
-
-The design and decision behind this live in the corpus: `rac/designs/`
-(graph-connector-shape) and `rac/decisions/` (ADR-003).
-
 ## The export contract
 
 `rac export <dir> --documents` emits JSON Lines, one record per artifact:
@@ -199,21 +225,8 @@ The design and decision behind this live in the corpus: `rac/designs/`
 
 `text` is the Markdown body (backends embed text, not HTML); `id` is the
 canonical handle for the verify-in-Lore round-trip; `status` lets a reader drop
-retired or superseded items.
-
-`rac export <dir> --graph` emits one JSON object of typed nodes and edges:
-
-```json
-{"schema_version":"1","source":"rac",
- "nodes":[{"id":"RAC-…","type":"decision","status":"Accepted","title":"…"}],
- "edges":[{"source":"RAC-…","target":"RAC-…","type":"supersedes",
-           "directed":true,"resolved":true}]}
-```
-
-`edges[].type` is the real relationship kind with its registry direction;
-`resolved:false` means the reference didn't resolve and `target` is literal text.
-Both contracts are additive and stable (rac-core ADR-007) — connectors depend
-only on them.
+retired or superseded items. The contract is additive and stable (rac-core
+ADR-007) — connectors depend only on it.
 
 ## Python API
 
@@ -229,18 +242,7 @@ summary = SupermemoryConnector(client_from_env()).push(records)
 print(summary.summary_line())       # -> "supermemory push: 263 pushed, 0 skipped"
 ```
 
-…or parse a `--graph` object and push it through a graph backend:
-
-```python
-from lore_connectors import parse_graph
-from lore_connectors.neo4j import Neo4jConnector, client_from_env
-
-graph = parse_graph(open("graph.json").read())
-summary = Neo4jConnector(client_from_env()).push_graph(graph)
-print(summary.summary_line())       # -> "neo4j push: 1494 pushed, 0 skipped"
-```
-
-Pass `dry_run=True` to preview either push without a client or a connection.
+Pass `dry_run=True` to preview without a client or an API call.
 
 ## One package, many backends
 
@@ -272,10 +274,13 @@ class Connector(Protocol):
 ```
 
 The module supplies the upsert mapping behind a thin, mockable client, and adds
-its subcommand and optional `[backend]` extra. Named future targets (shape only,
-not built): documents → Mem0, Zep, Letta, Cognee, Pinecone, Weaviate, Qdrant,
-Chroma, Milvus, pgvector, LanceDB; graph → Neo4j, Zep Graphiti, Cognee,
-Microsoft GraphRAG.
+its subcommand and optional `[backend]` extra. Document it once in
+`docs/connectors/<backend>.md` (with a `<!-- lore-connector -->` metadata header)
+and run `python scripts/sync_readme.py` — that stitches the page into the
+[Connectors](#connectors) section above, so each connector owns its own file and
+the README never drifts. Named future targets (shape only, not built):
+documents → Mem0, Zep, Letta, Cognee, Pinecone, Weaviate, Qdrant, Chroma, Milvus,
+pgvector, LanceDB; graph → Neo4j, Zep Graphiti, Cognee, Microsoft GraphRAG.
 
 ## Who it's for
 

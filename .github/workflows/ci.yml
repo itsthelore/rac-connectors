@@ -35,13 +35,18 @@ jobs:
           python -m pip install -e .[dev]
 
       - name: ruff check
-        run: python -m ruff check src/ tests/
+        run: python -m ruff check src/ tests/ scripts/
 
       - name: ruff format --check
-        run: python -m ruff format --check src/ tests/
+        run: python -m ruff format --check src/ tests/ scripts/
 
       - name: mypy
         run: python -m mypy src/
+
+      - name: README connectors in sync
+        # The README's Connectors region is generated from docs/connectors/*.md;
+        # fail if a page was edited without re-running the sync.
+        run: python scripts/sync_readme.py --check
 
   test:
     name: pytest (py${{ matrix.python-version }})
