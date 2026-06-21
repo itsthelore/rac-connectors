@@ -282,6 +282,38 @@ Decision: [`rac/decisions/`](rac/decisions) — ADR-006 (Letta backend, archive-
 </details>
 
 <details>
+<summary><strong>Cognee</strong> — documents → a Cognee knowledge graph; content-hash idempotent</summary>
+
+The odd one out: [Cognee](https://www.cognee.ai) is an async pipeline that builds
+the corpus into a **knowledge graph** (`add` then `cognify`) rather than a
+per-record store. It still consumes the same `rac export --documents` stream:
+
+```bash
+pip install 'lore-connectors[cognee]'
+export LLM_API_KEY=...        # Cognee needs an LLM to cognify
+
+rac export rac/ --documents | lore-connect cognee            # build the graph
+rac export rac/ --documents | lore-connect cognee --dry-run  # preview, no pipeline run
+lore-connect cognee --input corpus.jsonl                     # read a file, not stdin
+```
+
+- **A corpus maps to a Cognee dataset.** Each record is staged with a `Lore-Id:`
+  provenance header (Cognee has no per-record metadata filter), then the whole
+  dataset is built once via `add` + `cognify`.
+- **Content-hash idempotency, not a resync.** Cognee's native
+  `incremental_loading` dedups by content hash, so re-pushing unchanged records
+  is a no-op. **Caveat:** it does **not** prune artifacts deleted from the corpus
+  (unlike the wipe-and-rebuild backends).
+- **No embeddings here.** Cognee builds the graph and embeds; the connector only
+  ships text. Auth via `LLM_API_KEY` (Cognee's LLM credential).
+
+Decision: [`rac/decisions/`](rac/decisions) — ADR-007 (Cognee backend, two-phase pipeline, the deletion-prune trade-off).
+
+**Full page:** [`docs/connectors/cognee.md`](docs/connectors/cognee.md)
+
+</details>
+
+<details>
 <summary><strong>Neo4j</strong> — graph → typed nodes & edges via Cypher MERGE; idempotent on the canonical id</summary>
 
 The other export projection, `rac export --graph`, is Lore's *real, validated*

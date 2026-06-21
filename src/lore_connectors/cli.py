@@ -17,6 +17,9 @@ from collections.abc import Iterable, Iterator
 from typing import TextIO
 
 from .base import Connector, PushSummary
+from .cognee import CogneeConnector
+from .cognee.client import MissingCredentialsError as CogneeMissingCredentialsError
+from .cognee.client import client_from_env as cognee_client_from_env
 from .graph import MalformedGraphError, parse_graph
 from .letta import LettaConnector
 from .letta.client import MissingCredentialsError as LettaMissingCredentialsError
@@ -160,6 +163,34 @@ def _run_letta(args: argparse.Namespace) -> int:
             try:
                 connector = LettaConnector(letta_client_from_env())
             except LettaMissingCredentialsError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 2
+        try:
+            summary = _push_with_skips(
+                connector, stream, dry_run=args.dry_run, strict=args.strict
+            )
+        except MalformedRecordError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    finally:
+        if owned:
+            stream.close()
+
+    if args.dry_run or args.verbose:
+        for action in summary.actions:
+            print(action)
+    print(summary.summary_line(), file=sys.stderr)
+    return 0
+
+
+def _run_cognee(args: argparse.Namespace) -> int:
+    connector: Connector = CogneeConnector()
+    stream, owned = _open_stream(args.input)
+    try:
+        if not args.dry_run:
+            try:
+                connector = CogneeConnector(cognee_client_from_env())
+            except CogneeMissingCredentialsError as exc:
                 print(f"error: {exc}", file=sys.stderr)
                 return 2
         try:
@@ -351,6 +382,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print per-record actions on a live push too.",
     )
     letta.set_defaults(func=_run_letta)
+
+    cog = sub.add_parser(
+        "cognee",
+        help="Build documents into a Cognee knowledge graph (content-hash idempotent).",
+    )
+    cog.add_argument(
+        "--input",
+        "-i",
+        default=None,
+        help="JSONL file to read (default: stdin). '-' also means stdin.",
+    )
+    cog.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be sent without running the pipeline.",
+    )
+    cog.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on a malformed line instead of skipping it.",
+    )
+    cog.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print per-record actions on a live push too.",
+    )
+    cog.set_defaults(func=_run_cognee)
 
     neo = sub.add_parser(
         "neo4j",

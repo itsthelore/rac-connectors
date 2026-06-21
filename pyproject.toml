@@ -49,6 +49,9 @@ zep = ["zep-cloud>=3,<4"]
 # The live Letta push needs the Letta client; the core install and the
 # fake-driven test-suite stay dependency-free. Pinned to the verified v1 major.
 letta = ["letta-client>=1,<2"]
+# The live Cognee push needs the cognee pipeline; the core install and the
+# fake-driven test-suite stay dependency-free. Pinned to the verified v1 major.
+cognee = ["cognee>=1,<2"]
 dev = ["pytest>=7.0", "ruff", "mypy"]
 
 [project.scripts]
@@ -77,5 +80,12 @@ packages = ["lore_connectors"]
 # Provider SDKs are optional extras, imported lazily; CI type-checks without
 # them installed, so their missing stubs are not an error.
 [[tool.mypy.overrides]]
-module = ["supermemory.*", "mem0.*", "neo4j.*", "zep_cloud.*", "letta_client.*"]
+module = [
+    "supermemory.*",
+    "mem0.*",
+    "neo4j.*",
+    "zep_cloud.*",
+    "letta_client.*",
+    "cognee.*",
+]
 ignore_missing_imports = true
