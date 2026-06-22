@@ -13,6 +13,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from .contract import check_contract_version
+
 
 class MalformedGraphError(ValueError):
     """The ``--graph`` payload could not be parsed into a valid graph."""
@@ -115,6 +117,7 @@ def parse_graph(payload: str) -> Graph:
     schema_version = data.get("schema_version", "1")
     if not isinstance(schema_version, str):
         schema_version = str(schema_version)
+    check_contract_version(schema_version)
 
     return Graph(
         source=source,

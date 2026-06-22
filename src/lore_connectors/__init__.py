@@ -12,6 +12,11 @@ One repo, one module per backend (ADR-073). Supermemory is module one.
 from __future__ import annotations
 
 from .base import Connector, GraphConnector, PushSummary
+from .contract import (
+    SUPPORTED_CONTRACT_VERSION,
+    ContractVersionWarning,
+    check_contract_version,
+)
 from .graph import (
     Graph,
     GraphEdge,
@@ -22,7 +27,9 @@ from .graph import (
 from .records import MalformedRecordError, Record, parse_documents
 
 __all__ = [
+    "SUPPORTED_CONTRACT_VERSION",
     "Connector",
+    "ContractVersionWarning",
     "Graph",
     "GraphConnector",
     "GraphEdge",
@@ -31,6 +38,7 @@ __all__ = [
     "MalformedRecordError",
     "PushSummary",
     "Record",
+    "check_contract_version",
     "parse_documents",
     "parse_graph",
 ]

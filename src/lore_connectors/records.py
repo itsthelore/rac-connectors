@@ -13,6 +13,8 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
+from .contract import check_contract_version
+
 
 class MalformedRecordError(ValueError):
     """A ``--documents`` line could not be parsed into a valid record.
@@ -124,4 +126,5 @@ def parse_documents(lines: Iterable[str], *, strict: bool = False) -> Iterator[R
             if strict:
                 raise MalformedRecordError(index, str(exc), raw) from exc
             continue
+        check_contract_version(record.schema_version)
         yield record
