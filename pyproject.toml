@@ -61,7 +61,10 @@ lore-connect = "lore_connectors.cli:main"
 where = ["src"]
 
 [tool.setuptools_scm]
-# Version comes from git tags (vX.Y.Z). Untagged builds get a dev version.
+# Version comes from git tags. CalVer: tag YYYY.M.<minor> (e.g. 2026.6.1) —
+# PEP 440 strips a zero-padded month, so tag 2026.6.1, not 2026.06.1. Independent
+# minor counter, not lock-step with rac-core (ADR-008). Untagged builds get a
+# dev version.
 
 [tool.ruff]
 line-length = 88

@@ -424,6 +424,11 @@ canonical handle for the verify-in-Lore round-trip; `status` lets a reader drop
 retired or superseded items. The contract is additive and stable (rac-core
 ADR-007) — connectors depend only on it.
 
+The connector targets export **`schema_version` 1** — the only thing it depends
+on across repos (not the `rac` package version). It reads from any `rac` release
+that emits version 1, and warns (on stderr) if it ever sees a newer contract
+major. See `rac/decisions/` (ADR-008).
+
 ## Python API
 
 The connector is a library too. Parse a `--documents` stream into records and
