@@ -1,8 +1,10 @@
 name: Upload Python Package
 
-# Publish lore-connectors to PyPI when a GitHub Release is published.
-# Versioning is tag-driven (setuptools-scm): tag vX.Y.Z, cut the release, and
-# the build is version X.Y.Z. Mirrors rac-core's release flow.
+# Publish lore-connectors to PyPI when a GitHub Release is published. The
+# trigger is the Release, not a tag pattern, so the tag name carries no `v`
+# requirement. Versioning is tag-driven (setuptools-scm) and CalVer (ADR-008):
+# tag YYYY.M.<minor> (e.g. 2026.6.1), publish the release, and the build is
+# that version. Mirrors rac-core's release flow.
 
 on:
   release:

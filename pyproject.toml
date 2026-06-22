@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lore-connectors"
 # Version is derived from the git tag by setuptools-scm (mirrors rac-core).
-# Release flow: tag vX.Y.Z -> the build is version X.Y.Z. No manual edits.
+# Release flow (CalVer, ADR-008): tag YYYY.M.<minor> (e.g. 2026.6.1, no `v`,
+# no zero-padded month) -> the build is that version. No manual edits.
 dynamic = ["version"]
 description = "Outbound connectors that push Lore's (RAC) corpus export into external memory, RAG, and graph backends."
 readme = "README.md"
