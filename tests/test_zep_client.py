@@ -58,13 +58,13 @@ def stub_zep(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_add_maps_to_graph_add(stub_zep: None) -> None:
     client = SdkZepClient(api_key="k")
-    client.add(text="body", container="rac", metadata={"lore_id": "RAC-1"})
+    client.add(text="body", container="rac", metadata={"rac_id": "RAC-1"})
     call = _StubZep.last.graph.adds[0]
     assert call == {
         "data": "body",
         "type": "text",
         "graph_id": "rac",
-        "metadata": {"lore_id": "RAC-1"},
+        "metadata": {"rac_id": "RAC-1"},
     }
 
 

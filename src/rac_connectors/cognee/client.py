@@ -87,13 +87,13 @@ def client_from_env() -> SdkCogneeClient:
 
 
 def provenance_payload(
-    *, text: str, lore_id: str, type: str, status: str, title: str
+    *, text: str, rac_id: str, type: str, status: str, title: str
 ) -> str:
     """Prefix a document with a provenance header.
 
-    Cognee carries no per-record metadata filter, so the canonical ``lore_id``
+    Cognee carries no per-record metadata filter, so the canonical ``rac_id``
     (and lifecycle) is embedded as a header line — keeping the verify-in-Lore
     handle recoverable from Cognee's graph (ADR-007).
     """
-    header = f"Lore-Id: {lore_id}\nType: {type}\nStatus: {status}\nTitle: {title}"
+    header = f"Rac-Id: {rac_id}\nType: {type}\nStatus: {status}\nTitle: {title}"
     return f"{header}\n\n{text}"

@@ -158,7 +158,7 @@ Each record maps to a Supermemory upsert:
 ```
 record → add(content=text,
              container_tag=metadata.source,
-             metadata={lore id, type, status, title, path, …},
+             metadata={rac id, type, status, title, path, …},
              custom_id=id)
 ```
 
@@ -199,7 +199,7 @@ rac-connect mem0 --input corpus.jsonl                     # read a file, not std
 ```
 
 - **Stores the text as-is.** `infer=False` skips Mem0's LLM fact-extraction, so it
-  only embeds the artifact text; the canonical `lore_id`, `type`, `status`, and
+  only embeds the artifact text; the canonical `rac_id`, `type`, `status`, and
   `title` ride in metadata for the verify-in-Lore loop.
 - **Idempotent by container resync.** Mem0 has no per-record upsert key, so each
   push clears the corpus partition (Mem0 `user_id = source`) and re-adds —
@@ -231,7 +231,7 @@ rac-connect zep --input corpus.jsonl                     # read a file, not stdi
 ```
 
 - **A corpus maps to a Zep graph.** A `source` becomes a Zep `graph_id`; each
-  record is added as a `type="text"` episode carrying the canonical `lore_id`,
+  record is added as a `type="text"` episode carrying the canonical `rac_id`,
   `type`, `status`, and `title` in metadata.
 - **Idempotent by graph resync.** Zep has no per-record upsert key, so each push
   deletes and recreates the corpus graph, then re-adds — re-running never
@@ -265,7 +265,7 @@ rac-connect letta --input corpus.jsonl                     # read a file, not st
 ```
 
 - **A corpus maps to a Letta archive.** A `source` becomes a named archive; each
-  record is added as a passage carrying the canonical `lore_id`, `type`,
+  record is added as a passage carrying the canonical `rac_id`, `type`,
   `status`, and `title` in metadata. (The connector resolves the opaque
   `archive_id` internally, so you address it by the source name.)
 - **Idempotent by archive resync.** Letta has no per-record upsert key, so each
@@ -297,7 +297,7 @@ rac export rac/ --documents | rac-connect cognee --dry-run  # preview, no pipeli
 rac-connect cognee --input corpus.jsonl                     # read a file, not stdin
 ```
 
-- **A corpus maps to a Cognee dataset.** Each record is staged with a `Lore-Id:`
+- **A corpus maps to a Cognee dataset.** Each record is staged with a `Rac-Id:`
   provenance header (Cognee has no per-record metadata filter), then the whole
   dataset is built once via `add` + `cognify`.
 - **Content-hash idempotency, not a resync.** Cognee's native

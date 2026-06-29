@@ -73,14 +73,14 @@ def stub_letta(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_clear_creates_archive_and_add_uses_its_id(stub_letta: None) -> None:
     client = SdkLettaClient(api_key="k")
     client.clear_container(container="rac")
-    client.add(text="body", container="rac", metadata={"lore_id": "RAC-1"})
+    client.add(text="body", container="rac", metadata={"rac_id": "RAC-1"})
 
     archives = _StubLetta.last.archives
     passage = archives.passages.created[0]
     # The passage was written to the freshly-created archive's id.
     assert passage["archive_id"] == "arch-1"
     assert passage["text"] == "body"
-    assert passage["metadata"] == {"lore_id": "RAC-1"}
+    assert passage["metadata"] == {"rac_id": "RAC-1"}
 
 
 def test_clear_deletes_existing_archive_of_same_name(stub_letta: None) -> None:

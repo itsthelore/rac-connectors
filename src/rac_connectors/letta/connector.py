@@ -38,14 +38,14 @@ class LettaConnector:
     def _metadata_for(self, record: Record) -> dict[str, Any]:
         """Metadata shipped with each passage.
 
-        ``lore_id`` carries the canonical handle for the verify-in-Lore loop;
+        ``rac_id`` carries the canonical handle for the verify-in-Lore loop;
         ``type``/``status``/``title`` ride along so a reader can filter retired
         or superseded items on read.
         """
         metadata = dict(record.metadata)
         metadata.update(
             {
-                "lore_id": record.id,
+                "rac_id": record.id,
                 "type": record.type,
                 "status": record.status,
                 "title": record.title,

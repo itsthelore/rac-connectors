@@ -21,7 +21,7 @@ rac-connect mem0 --input corpus.jsonl                     # read a file, not std
 ```
 
 - **Stores the text as-is.** `infer=False` skips Mem0's LLM fact-extraction, so it
-  only embeds the artifact text; the canonical `lore_id`, `type`, `status`, and
+  only embeds the artifact text; the canonical `rac_id`, `type`, `status`, and
   `title` ride in metadata for the verify-in-Lore loop.
 - **Idempotent by container resync.** Mem0 has no per-record upsert key, so each
   push clears the corpus partition (Mem0 `user_id = source`) and re-adds —

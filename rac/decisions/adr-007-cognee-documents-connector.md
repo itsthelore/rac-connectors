@@ -38,7 +38,7 @@ does not transfer directly. This ADR records how Cognee fits the seam anyway.
   not a resync. Re-pushing unchanged records is a no-op; changed records are
   reprocessed.
 - **Provenance is carried as a header line in each document**, because Cognee has
-  no per-record metadata filter: every payload is prefixed with `Lore-Id`, type,
+  no per-record metadata filter: every payload is prefixed with `Rac-Id`, type,
   status, and title, keeping the verify-in-Lore handle recoverable from Cognee's
   graph.
 - **Cognee builds the graph and embeds; nothing is embedded here** (rac-core

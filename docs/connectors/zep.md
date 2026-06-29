@@ -21,7 +21,7 @@ rac-connect zep --input corpus.jsonl                     # read a file, not stdi
 ```
 
 - **A corpus maps to a Zep graph.** A `source` becomes a Zep `graph_id`; each
-  record is added as a `type="text"` episode carrying the canonical `lore_id`,
+  record is added as a `type="text"` episode carrying the canonical `rac_id`,
   `type`, `status`, and `title` in metadata.
 - **Idempotent by graph resync.** Zep has no per-record upsert key, so each push
   deletes and recreates the corpus graph, then re-adds — re-running never

@@ -45,11 +45,11 @@ def stub_mem0(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_add_maps_to_sdk_with_infer_false(stub_mem0: None) -> None:
     client = SdkMem0Client(api_key="k")
-    client.add(text="body", container="rac", metadata={"lore_id": "RAC-1"})
+    client.add(text="body", container="rac", metadata={"rac_id": "RAC-1"})
     call = _StubMemoryClient.last.adds[0]
     assert call["messages"] == "body"
     assert call["user_id"] == "rac"  # container maps to the user_id partition
-    assert call["metadata"] == {"lore_id": "RAC-1"}
+    assert call["metadata"] == {"rac_id": "RAC-1"}
     assert call["infer"] is False  # store as-is; no LLM rewrite
 
 

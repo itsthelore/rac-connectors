@@ -22,7 +22,7 @@ rac-connect letta --input corpus.jsonl                     # read a file, not st
 ```
 
 - **A corpus maps to a Letta archive.** A `source` becomes a named archive; each
-  record is added as a passage carrying the canonical `lore_id`, `type`,
+  record is added as a passage carrying the canonical `rac_id`, `type`,
   `status`, and `title` in metadata. (The connector resolves the opaque
   `archive_id` internally, so you address it by the source name.)
 - **Idempotent by archive resync.** Letta has no per-record upsert key, so each

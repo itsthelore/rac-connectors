@@ -32,7 +32,7 @@ Two specifics shape the connector (verified against letta-client 1.12.1):
 - **Idempotency is an archive resync.** On a push, the first time a source is
   seen its archive is cleared — list archives by that name, delete them, create a
   fresh one — then every record is added as a passage carrying the canonical
-  `lore_id`/`type`/`status`/`title` in metadata. Re-running yields exactly the
+  `rac_id`/`type`/`status`/`title` in metadata. Re-running yields exactly the
   corpus, no duplicates — the contract's "containerTag as the upsert key".
 - **Letta embeds the passages; nothing is embedded here** (rac-core ADR-002,
   ADR-066).
@@ -70,7 +70,7 @@ Architecture
 
 ## Alternatives Considered
 
-### Per-passage delete keyed on a `lore_id` metadata filter
+### Per-passage delete keyed on a `rac_id` metadata filter
 
 Rejected: Letta deletes passages by id (not persisted by the connector) and
 exposes no metadata-filtered passage delete. Archive-level resync via

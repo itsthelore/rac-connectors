@@ -24,7 +24,7 @@ Each record maps to a Supermemory upsert:
 ```
 record → add(content=text,
              container_tag=metadata.source,
-             metadata={lore id, type, status, title, path, …},
+             metadata={rac id, type, status, title, path, …},
              custom_id=id)
 ```
 

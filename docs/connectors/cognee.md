@@ -20,7 +20,7 @@ rac export rac/ --documents | rac-connect cognee --dry-run  # preview, no pipeli
 rac-connect cognee --input corpus.jsonl                     # read a file, not stdin
 ```
 
-- **A corpus maps to a Cognee dataset.** Each record is staged with a `Lore-Id:`
+- **A corpus maps to a Cognee dataset.** Each record is staged with a `Rac-Id:`
   provenance header (Cognee has no per-record metadata filter), then the whole
   dataset is built once via `add` + `cognify`.
 - **Content-hash idempotency, not a resync.** Cognee's native

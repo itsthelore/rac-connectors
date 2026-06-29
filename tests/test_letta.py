@@ -49,7 +49,7 @@ def test_record_maps_to_add_with_metadata() -> None:
     call = client.adds[0]
     assert call["text"] == "## Context\n\nbody"
     assert call["container"] == "rac"  # source maps to the Letta archive
-    assert call["metadata"]["lore_id"] == "RAC-ABC"
+    assert call["metadata"]["rac_id"] == "RAC-ABC"
     assert call["metadata"]["status"] == "Accepted"
 
 

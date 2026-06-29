@@ -54,7 +54,7 @@ def test_record_maps_to_add_with_metadata() -> None:
     call = client.adds[0]
     assert call["text"] == "## Context\n\nbody"
     assert call["container"] == "rac"  # source maps to the Mem0 partition
-    assert call["metadata"]["lore_id"] == "RAC-ABC"  # the verify-in-Lore handle
+    assert call["metadata"]["rac_id"] == "RAC-ABC"  # the verify-in-Lore handle
     assert call["metadata"]["status"] == "Accepted"
     assert call["metadata"]["path"] == "rac/decisions/adr-001.md"
 

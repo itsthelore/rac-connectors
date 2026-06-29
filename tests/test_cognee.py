@@ -58,7 +58,7 @@ def test_payload_carries_provenance() -> None:
     client = FakeCogneeClient()
     CogneeConnector(client).push([_record()])  # push commits internally
     payload = next(iter(client.built["rac"]))
-    assert "Lore-Id: RAC-ABC" in payload  # the verify-in-Lore handle
+    assert "Rac-Id: RAC-ABC" in payload  # the verify-in-Lore handle
     assert "Status: Accepted" in payload
     assert "## Context\n\nbody" in payload  # the artifact text is preserved
 

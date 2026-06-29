@@ -31,7 +31,7 @@ strategy, or re-running would duplicate every memory.
   the cleanest idempotency Mem0's API supports, since it lacks `custom_id`.
 - **Records are stored as-is, not LLM-rewritten.** `add(..., infer=False)` skips
   Mem0's fact-extraction so it only embeds the artifact text; the canonical
-  `lore_id`, `type`, `status`, and `title` ride in metadata for the
+  `rac_id`, `type`, `status`, and `title` ride in metadata for the
   verify-in-Lore loop and retired-item filtering. No embeddings in the connector
   (rac-core ADR-002, ADR-066).
 - **Auth from the environment** (`MEM0_API_KEY`), the SDK behind a thin, mockable
@@ -45,7 +45,7 @@ strategy, or re-running would duplicate every memory.
   path.
 - Re-sync is unambiguously idempotent and uses only well-supported Mem0
   operations (`delete_all` by partition, `add`).
-- Provenance (`lore_id`/`status`) is preserved for the verify-in-Lore loop.
+- Provenance (`rac_id`/`status`) is preserved for the verify-in-Lore loop.
 
 ### Negative / trade-offs
 
@@ -69,7 +69,7 @@ Architecture
 
 ## Alternatives Considered
 
-### Per-record delete-then-add keyed on a `lore_id` metadata filter
+### Per-record delete-then-add keyed on a `rac_id` metadata filter
 
 Rejected for now: it is more surgical, but depends on Mem0's metadata-filtered
 delete semantics, which vary across platform and OSS and could not be verified

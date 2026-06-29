@@ -47,7 +47,7 @@ class CogneeConnector:
                 continue
             payload = provenance_payload(
                 text=record.text,
-                lore_id=record.id,
+                rac_id=record.id,
                 type=record.type,
                 status=record.status,
                 title=record.title,

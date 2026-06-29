@@ -31,7 +31,7 @@ to resync a namespace.
   exactly the corpus, no duplicates, satisfying the contract's "containerTag as
   the upsert key".
 - **Records are added as text episodes carrying provenance metadata.** The
-  canonical `lore_id`, `type`, `status`, and `title` ride in episode metadata for
+  canonical `rac_id`, `type`, `status`, and `title` ride in episode metadata for
   the verify-in-Lore loop and retired-item filtering. Zep derives its graph and
   embeds; no embeddings in the connector (rac-core ADR-002, ADR-066).
 - **Auth from the environment** (`ZEP_API_KEY`), the SDK behind a thin, mockable
@@ -44,7 +44,7 @@ to resync a namespace.
 - A third documents backend with no new seam — pure reuse of the documents path.
 - Graph resync is unambiguously idempotent and uses Zep's first-class lifecycle
   methods (`create` / `delete`), cleaner than a metadata-filtered prune.
-- Provenance (`lore_id`/`status`) is preserved for the verify-in-Lore loop.
+- Provenance (`rac_id`/`status`) is preserved for the verify-in-Lore loop.
 
 ### Negative / trade-offs
 
@@ -68,7 +68,7 @@ Architecture
 
 ## Alternatives Considered
 
-### Per-episode delete keyed on a `lore_id` metadata filter
+### Per-episode delete keyed on a `rac_id` metadata filter
 
 Rejected: Zep deletes episodes by uuid, which the connector does not persist, and
 there is no documented metadata-filtered episode delete. Graph-level resync via
