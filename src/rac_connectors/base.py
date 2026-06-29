@@ -75,7 +75,7 @@ class GraphConnector(Protocol):
     """Outbound-only sink for the ``--graph`` projection (typed nodes + edges).
 
     The sibling of :class:`Connector` for graph backends. The input shape differs
-    — one whole :class:`~lore_connectors.graph.Graph`, not a stream of records —
+    — one whole :class:`~rac_connectors.graph.Graph`, not a stream of records —
     so it is a separate seam (ADR-003), but it shares the CLI, the
     :class:`PushSummary`, and the dry-run contract. ``push_graph`` must be
     idempotent on each node's and edge's canonical identity so re-running an

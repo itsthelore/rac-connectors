@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.zep.client import MissingApiKeyError, SdkZepClient
+from rac_connectors.zep.client import MissingApiKeyError, SdkZepClient
 
 
 class _StubGraph:

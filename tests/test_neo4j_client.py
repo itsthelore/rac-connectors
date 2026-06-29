@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.neo4j.client import DriverNeo4jClient, MissingCredentialsError
+from rac_connectors.neo4j.client import DriverNeo4jClient, MissingCredentialsError
 
 
 class _StubSession:

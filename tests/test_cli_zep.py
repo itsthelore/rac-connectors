@@ -1,10 +1,10 @@
-"""End-to-end CLI behaviour for the `lore-connect zep` subcommand."""
+"""End-to-end CLI behaviour for the `rac-connect zep` subcommand."""
 
 from __future__ import annotations
 
 import io
 
-from lore_connectors import cli
+from rac_connectors import cli
 
 
 def _line(record_id: str = "RAC-1") -> str:

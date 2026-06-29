@@ -1,4 +1,4 @@
-<!-- lore-connector
+<!-- rac-connector
 name: Letta
 tagline: documents → Letta archives (cloud or self-hosted); idempotent by archive resync
 extra: letta
@@ -12,13 +12,13 @@ A one-way, outbound push of the `rac export --documents` stream into
 documents backends, a different subcommand:
 
 ```bash
-pip install 'lore-connectors[letta]'
+pip install 'rac-connectors[letta]'
 export LETTA_API_KEY=...                       # Letta Cloud
 # or, self-hosted:  export LETTA_BASE_URL=http://localhost:8283
 
-rac export rac/ --documents | lore-connect letta            # upsert every record
-rac export rac/ --documents | lore-connect letta --dry-run  # preview, no API call
-lore-connect letta --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect letta            # upsert every record
+rac export rac/ --documents | rac-connect letta --dry-run  # preview, no API call
+rac-connect letta --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **A corpus maps to a Letta archive.** A `source` becomes a named archive; each

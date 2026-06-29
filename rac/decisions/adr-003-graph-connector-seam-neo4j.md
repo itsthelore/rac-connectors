@@ -30,7 +30,7 @@ backend is the first reference. The design `graph-connector-shape` works the
   an official Python driver and a Cypher `MERGE` model that makes node/edge
   upserts idempotent on the canonical `id`. It is the portable reference later
   graph backends (Zep Graphiti, Cognee, Microsoft GraphRAG) are measured
-  against. It is a module under `lore-connectors`, not a new repo (rac-core
+  against. It is a module under `rac-connectors`, not a new repo (rac-core
   ADR-073), with the driver behind a thin, mockable client and an optional
   `[neo4j]` extra.
 - **Idempotency is `MERGE` on `id`.** Nodes `MERGE (n:Artifact {id})`; edges

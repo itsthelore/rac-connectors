@@ -1,4 +1,4 @@
-"""Mem0 backend module for lore-connectors."""
+"""Mem0 backend module for rac-connectors."""
 
 from __future__ import annotations
 

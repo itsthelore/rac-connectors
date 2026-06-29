@@ -15,7 +15,7 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.letta.client import MissingCredentialsError, SdkLettaClient
+from rac_connectors.letta.client import MissingCredentialsError, SdkLettaClient
 
 
 class _Archive:

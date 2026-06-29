@@ -1,4 +1,4 @@
-"""The Supermemory connector — module one of lore-connectors (ADR-073).
+"""The Supermemory connector — module one of rac-connectors (ADR-073).
 
 A one-way, outbound push: read ``rac export --documents`` records and upsert each
 into Supermemory. The mapping is fixed by the rac-core design

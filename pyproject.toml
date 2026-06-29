@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lore-connectors"
+name = "rac-connectors"
 # Version is derived from the git tag by setuptools-scm (mirrors rac-core).
 # Release flow (CalVer, ADR-008): tag YYYY.M.<minor> (e.g. 2026.6.1, no `v`,
 # no zero-padded month) -> the build is that version. No manual edits.
@@ -28,9 +28,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/itsthelore/lore-connectors"
-Repository = "https://github.com/itsthelore/lore-connectors"
-Issues = "https://github.com/itsthelore/lore-connectors/issues"
+Homepage = "https://github.com/itsthelore/rac-connectors"
+Repository = "https://github.com/itsthelore/rac-connectors"
+Issues = "https://github.com/itsthelore/rac-connectors/issues"
 Engine = "https://github.com/itsthelore/rac-core"
 
 [project.optional-dependencies]
@@ -56,7 +56,7 @@ cognee = ["cognee>=1,<2"]
 dev = ["pytest>=7.0", "ruff", "mypy"]
 
 [project.scripts]
-lore-connect = "lore_connectors.cli:main"
+rac-connect = "rac_connectors.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -79,7 +79,7 @@ testpaths = ["tests"]
 
 [tool.mypy]
 python_version = "3.11"
-packages = ["lore_connectors"]
+packages = ["rac_connectors"]
 
 # Provider SDKs are optional extras, imported lazily; CI type-checks without
 # them installed, so their missing stubs are not an error.

@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from lore_connectors.graph import (
+from rac_connectors.graph import (
     Graph,
     GraphEdge,
     GraphNode,

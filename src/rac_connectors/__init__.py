@@ -1,4 +1,4 @@
-"""lore-connectors — outbound connectors that push Lore's export into backends.
+"""rac-connectors — outbound connectors that push Lore's export into backends.
 
 Companion to Lore (the product) / RAC (the engine). RAC serves a team's product
 knowledge read-only over MCP; this package consumes RAC's stable export contract

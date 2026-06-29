@@ -1,9 +1,9 @@
-# lore-connectors
+# rac-connectors
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/itsthelore/lore-connectors/main/rac/assets/images/lore-header-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/itsthelore/lore-connectors/main/rac/assets/images/lore-header-light.png">
-  <img alt="Lore — agents that know why. Deterministic. Read-only. No RAG, no guessing." src="https://raw.githubusercontent.com/itsthelore/lore-connectors/main/rac/assets/images/lore-header-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/itsthelore/rac-connectors/main/rac/assets/images/lore-header-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/itsthelore/rac-connectors/main/rac/assets/images/lore-header-light.png">
+  <img alt="Lore — agents that know why. Deterministic. Read-only. No RAG, no guessing." src="https://raw.githubusercontent.com/itsthelore/rac-connectors/main/rac/assets/images/lore-header-light.png">
 </picture>
 
 <p align="center">
@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/itsthelore/lore-connectors/actions/workflows/ci.yml"><img src="https://github.com/itsthelore/lore-connectors/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="https://github.com/itsthelore/rac-connectors/actions/workflows/ci.yml"><img src="https://github.com/itsthelore/rac-connectors/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python">
 <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/types-Mypy-blue.svg" alt="Typed"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License: Apache 2.0"></a>
@@ -23,7 +23,7 @@
 
 > **Push the decisions your team already recorded into the memory and RAG tools your agent already uses — so it can recall fuzzily there, then verify in Lore.**
 
-lore-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. The first connector is **Supermemory**.
+rac-connectors is the **outbound** companion to [Lore](https://github.com/itsthelore/rac-core) — the product surface of **RAC — Requirements as Code**, the open-source engine underneath. RAC keeps your team's requirements, decisions, designs, roadmaps, and prompts as typed Markdown and serves them **read-only** over MCP. This repo holds the connectors that ship RAC's export payloads into the external memory, RAG, and graph backends a team already runs. It is a *consumer of a stable export contract*, not part of the engine: no embeddings, vectors, or model calls happen here — those live in the backend. The first connector is **Supermemory**.
 
 ## How it compares
 
@@ -45,7 +45,7 @@ exact, current decision. Recall fuzzily, verify in Lore.
    it's on PyPI):
 
    ```bash
-   pip install 'lore-connectors[supermemory]'
+   pip install 'rac-connectors[supermemory]'
    ```
 
 2. **Authenticate** the backend via the environment (never hard-coded):
@@ -57,13 +57,13 @@ exact, current decision. Recall fuzzily, verify in Lore.
 3. **Push** the corpus — pipe a `rac export --documents` stream straight in:
 
    ```bash
-   rac export rac/ --documents | lore-connect supermemory
+   rac export rac/ --documents | rac-connect supermemory
    ```
 
 4. **Preview** first if you like — `--dry-run` calls no API:
 
    ```bash
-   rac export rac/ --documents | lore-connect supermemory --dry-run
+   rac export rac/ --documents | rac-connect supermemory --dry-run
    ```
 
 Re-running is idempotent: a re-push updates rather than duplicates. Each
@@ -71,30 +71,30 @@ backend's exact commands, auth, and flags live under [Connectors](#connectors).
 
 ## Install
 
-There is nothing to build — it's pure Python. Installing puts a `lore-connect`
+There is nothing to build — it's pure Python. Installing puts a `rac-connect`
 command on your PATH.
 
 **From PyPI** (once published — the name is reserved):
 
 ```bash
-pip install 'lore-connectors[supermemory]'
+pip install 'rac-connectors[supermemory]'
 ```
 
 **From source today** (pre-release — install straight from the repo):
 
 ```bash
 # one-liner, no clone:
-pip install 'lore-connectors[supermemory] @ git+https://github.com/itsthelore/lore-connectors.git'
+pip install 'rac-connectors[supermemory] @ git+https://github.com/itsthelore/rac-connectors.git'
 
 # or from a clone (editable, for hacking on it):
-git clone https://github.com/itsthelore/lore-connectors.git
-cd lore-connectors
+git clone https://github.com/itsthelore/rac-connectors.git
+cd rac-connectors
 pip install -e '.[supermemory]'
 ```
 
 | Extra | Gets you |
 |---|---|
-| *(none)* | the `lore-connect` CLI + the connector library + `--dry-run` |
+| *(none)* | the `rac-connect` CLI + the connector library + `--dry-run` |
 | `[<backend>]` | + that backend's SDK, needed for a live push — one per connector (see [Connectors](#connectors)) |
 | `[dev]` | + ruff, mypy, and pytest for development |
 
@@ -109,7 +109,7 @@ optional extras, so CI never needs a live backend.
 rac export rac/ --documents        # Lore emits one JSON line per artifact
         │
         ▼
-lore-connect supermemory           # this repo: upsert each record into the backend
+rac-connect supermemory           # this repo: upsert each record into the backend
         │
         ▼
 Supermemory  (fuzzy, associative recall)
@@ -130,7 +130,7 @@ get_artifact / rac resolve         # …verifies the authoritative text in Lore
 
 ## Connectors
 
-One package, one CLI: pick a backend with a subcommand (`lore-connect
+One package, one CLI: pick a backend with a subcommand (`rac-connect
 <backend>`) and pull only its SDK via the matching extra. Each connector's full
 page lives in [`docs/connectors/`](docs/connectors/); the collapsible sections
 below are generated from those pages, so this README and the pages never drift.
@@ -145,12 +145,12 @@ A one-way, outbound push of the `rac export --documents` stream into
 [Supermemory](https://supermemory.ai).
 
 ```bash
-pip install 'lore-connectors[supermemory]'
+pip install 'rac-connectors[supermemory]'
 export SUPERMEMORY_API_KEY=sk-...
 
-rac export rac/ --documents | lore-connect supermemory            # upsert every record
-rac export rac/ --documents | lore-connect supermemory --dry-run  # preview, no API call
-lore-connect supermemory --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect supermemory            # upsert every record
+rac export rac/ --documents | rac-connect supermemory --dry-run  # preview, no API call
+rac-connect supermemory --input corpus.jsonl                     # read a file, not stdin
 ```
 
 Each record maps to a Supermemory upsert:
@@ -190,12 +190,12 @@ A one-way, outbound push of the `rac export --documents` stream into
 a different subcommand:
 
 ```bash
-pip install 'lore-connectors[mem0]'
+pip install 'rac-connectors[mem0]'
 export MEM0_API_KEY=m0-...
 
-rac export rac/ --documents | lore-connect mem0            # upsert every record
-rac export rac/ --documents | lore-connect mem0 --dry-run  # preview, no API call
-lore-connect mem0 --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect mem0            # upsert every record
+rac export rac/ --documents | rac-connect mem0 --dry-run  # preview, no API call
+rac-connect mem0 --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **Stores the text as-is.** `infer=False` skips Mem0's LLM fact-extraction, so it
@@ -222,12 +222,12 @@ A one-way, outbound push of the `rac export --documents` stream into
 backends, a different subcommand:
 
 ```bash
-pip install 'lore-connectors[zep]'
+pip install 'rac-connectors[zep]'
 export ZEP_API_KEY=z_...
 
-rac export rac/ --documents | lore-connect zep            # upsert every record
-rac export rac/ --documents | lore-connect zep --dry-run  # preview, no API call
-lore-connect zep --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect zep            # upsert every record
+rac export rac/ --documents | rac-connect zep --dry-run  # preview, no API call
+rac-connect zep --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **A corpus maps to a Zep graph.** A `source` becomes a Zep `graph_id`; each
@@ -255,13 +255,13 @@ A one-way, outbound push of the `rac export --documents` stream into
 documents backends, a different subcommand:
 
 ```bash
-pip install 'lore-connectors[letta]'
+pip install 'rac-connectors[letta]'
 export LETTA_API_KEY=...                       # Letta Cloud
 # or, self-hosted:  export LETTA_BASE_URL=http://localhost:8283
 
-rac export rac/ --documents | lore-connect letta            # upsert every record
-rac export rac/ --documents | lore-connect letta --dry-run  # preview, no API call
-lore-connect letta --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect letta            # upsert every record
+rac export rac/ --documents | rac-connect letta --dry-run  # preview, no API call
+rac-connect letta --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **A corpus maps to a Letta archive.** A `source` becomes a named archive; each
@@ -289,12 +289,12 @@ the corpus into a **knowledge graph** (`add` then `cognify`) rather than a
 per-record store. It still consumes the same `rac export --documents` stream:
 
 ```bash
-pip install 'lore-connectors[cognee]'
+pip install 'rac-connectors[cognee]'
 export LLM_API_KEY=...        # Cognee needs an LLM to cognify
 
-rac export rac/ --documents | lore-connect cognee            # build the graph
-rac export rac/ --documents | lore-connect cognee --dry-run  # preview, no pipeline run
-lore-connect cognee --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect cognee            # build the graph
+rac export rac/ --documents | rac-connect cognee --dry-run  # preview, no pipeline run
+rac-connect cognee --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **A corpus maps to a Cognee dataset.** Each record is staged with a `Lore-Id:`
@@ -322,12 +322,12 @@ relationship graph — typed nodes and edges (`supersedes`, `related_decisions`,
 the actual decision graph instead of one an LLM inferred from prose:
 
 ```bash
-pip install 'lore-connectors[neo4j]'
+pip install 'rac-connectors[neo4j]'
 export NEO4J_URI=bolt://localhost:7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=...
 
-rac export rac/ --graph | lore-connect neo4j            # upsert nodes + edges
-rac export rac/ --graph | lore-connect neo4j --dry-run  # preview, no connection
-lore-connect neo4j --input graph.json                   # read a file, not stdin
+rac export rac/ --graph | rac-connect neo4j            # upsert nodes + edges
+rac export rac/ --graph | rac-connect neo4j --dry-run  # preview, no connection
+rac-connect neo4j --input graph.json                   # read a file, not stdin
 ```
 
 - **Idempotent via Cypher `MERGE`** on the canonical `id` — nodes
@@ -361,8 +361,8 @@ The contract is additive and stable (rac-core ADR-007).
 ### Python API
 
 ```python
-from lore_connectors import parse_graph
-from lore_connectors.neo4j import Neo4jConnector, client_from_env
+from rac_connectors import parse_graph
+from rac_connectors.neo4j import Neo4jConnector, client_from_env
 
 graph = parse_graph(open("graph.json").read())
 summary = Neo4jConnector(client_from_env()).push_graph(graph)
@@ -382,7 +382,7 @@ Design + decision: [`rac/designs/`](rac/designs) (graph-connector-shape) and
 
 ## Run it in CI
 
-`lore-connect` is a one-shot command — it pushes and exits — so keeping a
+`rac-connect` is a one-shot command — it pushes and exits — so keeping a
 backend fresh is just a job that runs the pipe whenever the corpus changes. A
 GitHub Actions step on merge to `main`:
 
@@ -399,8 +399,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install requirements-as-code 'lore-connectors[supermemory]'
-      - run: rac export rac/ --documents | lore-connect supermemory
+      - run: pip install requirements-as-code 'rac-connectors[supermemory]'
+      - run: rac export rac/ --documents | rac-connect supermemory
         env:
           SUPERMEMORY_API_KEY: ${{ secrets.SUPERMEMORY_API_KEY }}
 ```
@@ -435,8 +435,8 @@ The connector is a library too. Parse a `--documents` stream into records and
 push them through any backend module:
 
 ```python
-from lore_connectors import parse_documents
-from lore_connectors.supermemory import SupermemoryConnector, client_from_env
+from rac_connectors import parse_documents
+from rac_connectors.supermemory import SupermemoryConnector, client_from_env
 
 records = parse_documents(open("corpus.jsonl"))
 summary = SupermemoryConnector(client_from_env()).push(records)
@@ -447,13 +447,13 @@ Pass `dry_run=True` to preview without a client or an API call.
 
 ## One package, many backends
 
-There is **one** `lore-connectors` package on PyPI, not one per provider. As
+There is **one** `rac-connectors` package on PyPI, not one per provider. As
 more backends land, you don't install or learn a new tool — you:
 
-- **pick the backend with a CLI subcommand:** `lore-connect supermemory`,
-  later `lore-connect mem0`, `lore-connect neo4j`, …; and
+- **pick the backend with a CLI subcommand:** `rac-connect supermemory`,
+  later `rac-connect mem0`, `rac-connect neo4j`, …; and
 - **pull only the SDKs you use, as extras:**
-  `pip install 'lore-connectors[supermemory,mem0]'`. The base install and the
+  `pip install 'rac-connectors[supermemory,mem0]'`. The base install and the
   test-suite stay dependency-free; a provider's SDK arrives only with its extra.
 
 This is a recorded decision, not a convenience: rac-core ADR-073 keeps all
@@ -465,7 +465,7 @@ product with independent cadence — the documented escape hatch, not the defaul
 
 ## Add a backend
 
-A new backend is a module under `src/lore_connectors/` implementing one outbound
+A new backend is a module under `src/rac_connectors/` implementing one outbound
 seam — record parsing, the CLI, dry-run, and the summary shape are shared:
 
 ```python
@@ -476,7 +476,7 @@ class Connector(Protocol):
 
 The module supplies the upsert mapping behind a thin, mockable client, and adds
 its subcommand and optional `[backend]` extra. Document it once in
-`docs/connectors/<backend>.md` (with a `<!-- lore-connector -->` metadata header)
+`docs/connectors/<backend>.md` (with a `<!-- rac-connector -->` metadata header)
 and run `python scripts/sync_readme.py` — that stitches the page into the
 [Connectors](#connectors) section above, so each connector owns its own file and
 the README never drifts. Named future targets (shape only, not built):
@@ -502,7 +502,7 @@ documented with Lore.
 
 ## Origin
 
-lore-connectors is the **connector companion** to Lore / RAC. rac-core ADR-073
+rac-connectors is the **connector companion** to Lore / RAC. rac-core ADR-073
 settles the topology: backend connectors are export-contract consumers, so they
 consolidate into **one** repo with one module per backend — not a repo per
 provider, and never inside the engine (it stays pure-Python, AI-optional, and
@@ -511,9 +511,9 @@ offline). This repo dogfoods Lore for its own decisions under `rac/`.
 ## Repository layout
 
 ```text
-lore-connectors/
-  src/lore_connectors/   the connector library: the documents reader, the shared
-                         push seam, the lore-connect CLI, and one module per
+rac-connectors/
+  src/rac_connectors/   the connector library: the documents reader, the shared
+                         push seam, the rac-connect CLI, and one module per
                          backend (supermemory/ first)
   tests/                 the suite, driven against a fake client — no live API
   rac/                   the dogfood corpus: this repo's own decisions (ADRs),

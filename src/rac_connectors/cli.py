@@ -1,12 +1,12 @@
-"""``lore-connect`` — the CLI entrypoint for the lore-connectors companion.
+"""``rac-connect`` — the CLI entrypoint for the rac-connectors companion.
 
 One subcommand per backend. The documents backends read a ``rac export
 --documents`` JSON Lines stream; the graph backends read a ``rac export --graph``
 object::
 
-    rac export rac/ --documents | lore-connect supermemory
-    rac export rac/ --documents | lore-connect mem0 --dry-run
-    rac export rac/ --graph     | lore-connect neo4j
+    rac export rac/ --documents | rac-connect supermemory
+    rac export rac/ --documents | rac-connect mem0 --dry-run
+    rac export rac/ --graph     | rac-connect neo4j
 """
 
 from __future__ import annotations
@@ -262,7 +262,7 @@ def _run_neo4j(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="lore-connect",
+        prog="rac-connect",
         description=(
             "Push a 'rac export --documents' stream into an external memory / "
             "RAG / graph backend. Outbound only — the verify-in-Lore loop is "

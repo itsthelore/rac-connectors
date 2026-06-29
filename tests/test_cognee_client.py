@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.cognee.client import MissingCredentialsError, SdkCogneeClient
+from rac_connectors.cognee.client import MissingCredentialsError, SdkCogneeClient
 
 
 class _StubCognee(types.ModuleType):

@@ -1,4 +1,4 @@
-<!-- lore-connector
+<!-- rac-connector
 name: Neo4j
 tagline: graph → typed nodes & edges via Cypher MERGE; idempotent on the canonical id
 extra: neo4j
@@ -13,12 +13,12 @@ relationship graph — typed nodes and edges (`supersedes`, `related_decisions`,
 the actual decision graph instead of one an LLM inferred from prose:
 
 ```bash
-pip install 'lore-connectors[neo4j]'
+pip install 'rac-connectors[neo4j]'
 export NEO4J_URI=bolt://localhost:7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=...
 
-rac export rac/ --graph | lore-connect neo4j            # upsert nodes + edges
-rac export rac/ --graph | lore-connect neo4j --dry-run  # preview, no connection
-lore-connect neo4j --input graph.json                   # read a file, not stdin
+rac export rac/ --graph | rac-connect neo4j            # upsert nodes + edges
+rac export rac/ --graph | rac-connect neo4j --dry-run  # preview, no connection
+rac-connect neo4j --input graph.json                   # read a file, not stdin
 ```
 
 - **Idempotent via Cypher `MERGE`** on the canonical `id` — nodes
@@ -52,8 +52,8 @@ The contract is additive and stable (rac-core ADR-007).
 ### Python API
 
 ```python
-from lore_connectors import parse_graph
-from lore_connectors.neo4j import Neo4jConnector, client_from_env
+from rac_connectors import parse_graph
+from rac_connectors.neo4j import Neo4jConnector, client_from_env
 
 graph = parse_graph(open("graph.json").read())
 summary = Neo4jConnector(client_from_env()).push_graph(graph)

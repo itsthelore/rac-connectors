@@ -1,4 +1,4 @@
-<!-- lore-connector
+<!-- rac-connector
 name: Cognee
 tagline: documents → a Cognee knowledge graph; content-hash idempotent
 extra: cognee
@@ -12,12 +12,12 @@ the corpus into a **knowledge graph** (`add` then `cognify`) rather than a
 per-record store. It still consumes the same `rac export --documents` stream:
 
 ```bash
-pip install 'lore-connectors[cognee]'
+pip install 'rac-connectors[cognee]'
 export LLM_API_KEY=...        # Cognee needs an LLM to cognify
 
-rac export rac/ --documents | lore-connect cognee            # build the graph
-rac export rac/ --documents | lore-connect cognee --dry-run  # preview, no pipeline run
-lore-connect cognee --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect cognee            # build the graph
+rac export rac/ --documents | rac-connect cognee --dry-run  # preview, no pipeline run
+rac-connect cognee --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **A corpus maps to a Cognee dataset.** Each record is staged with a `Lore-Id:`

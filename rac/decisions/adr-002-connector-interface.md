@@ -7,7 +7,7 @@ type: decision
 
 ## Context
 
-ADR-073 (rac-core) fixes the repo topology: **one** `lore-connectors` repo with
+ADR-073 (rac-core) fixes the repo topology: **one** `rac-connectors` repo with
 **one module per backend**, not a repo per provider. Supermemory is module one;
 Mem0, Zep, Letta, Cognee, and the vector/graph stores are named future targets.
 This ADR fixes the *code seam* those modules share, so a new backend slots in
@@ -51,7 +51,7 @@ class Connector(Protocol):
 - **The backend SDK sits behind a thin client Protocol** the module depends on,
   so the test-suite drives a fake and CI stays offline. Auth is read from the
   environment by that client, never hard-coded.
-- **The CLI is one subcommand per backend** (`lore-connect <backend>`), each
+- **The CLI is one subcommand per backend** (`rac-connect <backend>`), each
   wiring stdin/`--input` and `--dry-run` to the module's `push`.
 
 The seam stays this small until a second backend proves a wider shape is needed;

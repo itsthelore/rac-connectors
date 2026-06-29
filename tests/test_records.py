@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from lore_connectors.records import (
+from rac_connectors.records import (
     MalformedRecordError,
     Record,
     parse_documents,

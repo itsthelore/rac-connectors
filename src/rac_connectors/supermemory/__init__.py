@@ -1,4 +1,4 @@
-"""Supermemory backend module for lore-connectors."""
+"""Supermemory backend module for rac-connectors."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""End-to-end CLI behaviour for the `lore-connect neo4j` subcommand."""
+"""End-to-end CLI behaviour for the `rac-connect neo4j` subcommand."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from lore_connectors import cli
+from rac_connectors import cli
 
 _GRAPH = {
     "schema_version": "1",

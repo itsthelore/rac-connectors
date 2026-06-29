@@ -1,4 +1,4 @@
-<!-- lore-connector
+<!-- rac-connector
 name: Supermemory
 tagline: documents → server-side embedding, idempotent on the canonical id
 extra: supermemory
@@ -11,12 +11,12 @@ A one-way, outbound push of the `rac export --documents` stream into
 [Supermemory](https://supermemory.ai).
 
 ```bash
-pip install 'lore-connectors[supermemory]'
+pip install 'rac-connectors[supermemory]'
 export SUPERMEMORY_API_KEY=sk-...
 
-rac export rac/ --documents | lore-connect supermemory            # upsert every record
-rac export rac/ --documents | lore-connect supermemory --dry-run  # preview, no API call
-lore-connect supermemory --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect supermemory            # upsert every record
+rac export rac/ --documents | rac-connect supermemory --dry-run  # preview, no API call
+rac-connect supermemory --input corpus.jsonl                     # read a file, not stdin
 ```
 
 Each record maps to a Supermemory upsert:

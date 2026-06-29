@@ -34,7 +34,7 @@ high-value recall surface that the documents projection cannot serve.
 
 ## Success Measures
 
-- `rac export rac/ --graph | lore-connect neo4j` upserts every node and edge,
+- `rac export rac/ --graph | rac-connect neo4j` upserts every node and edge,
   and re-running is idempotent (no duplicate nodes or relationships).
 - `--dry-run` reports the planned nodes/edges with no database connection.
 - The connector is covered by offline tests against a fake driver — no live

@@ -16,7 +16,7 @@ import types
 
 import pytest
 
-from lore_connectors.supermemory.client import (
+from rac_connectors.supermemory.client import (
     MissingApiKeyError,
     SdkSupermemoryClient,
 )

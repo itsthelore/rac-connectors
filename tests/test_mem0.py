@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.mem0 import DEFAULT_CONTAINER, Mem0Connector
-from lore_connectors.records import Record
+from rac_connectors.mem0 import DEFAULT_CONTAINER, Mem0Connector
+from rac_connectors.records import Record
 
 
 class FakeMem0Client:

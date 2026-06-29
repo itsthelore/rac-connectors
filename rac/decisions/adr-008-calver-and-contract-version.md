@@ -8,15 +8,15 @@ type: decision
 ## Context
 
 RAC / Lore is adopting CalVer (`YYYY.M.<minor>`) across the org, so rac-core
-releases as `2026.6.<minor>`. lore-connectors should align its scheme. But two
+releases as `2026.6.<minor>`. rac-connectors should align its scheme. But two
 things must not be conflated:
 
 - **Version *scheme* vs version *number*.** Matching the CalVer scheme aids
   ecosystem legibility. Matching the *number* in lock-step would be wrong:
-  lore-connectors and rac-core have independent release cadences (a connector
+  rac-connectors and rac-core have independent release cadences (a connector
   release does not correspond to a rac-core release), so any shared minor would
   diverge the first time either ships alone.
-- **The real cross-repo dependency.** lore-connectors does **not** depend on the
+- **The real cross-repo dependency.** rac-connectors does **not** depend on the
   rac-core *package* — it never imports `rac`. Its only dependency on Lore is the
   **export contract**: the `schema_version` carried by `rac export --documents`
   and `--graph`. That contract is additive-within-a-major and stable (rac-core

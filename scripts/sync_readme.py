@@ -18,7 +18,7 @@ page::
 
 Each page starts with an HTML-comment metadata block (hidden when rendered)::
 
-    <!-- lore-connector
+    <!-- rac-connector
     name: Supermemory
     tagline: one-line summary shown in the <summary>
     extra: supermemory
@@ -102,9 +102,9 @@ def load_pages() -> list[Page]:
         if path.name.lower() in {"readme.md", "index.md"}:
             continue
         text = path.read_text(encoding="utf-8")
-        if not text.startswith("<!-- lore-connector"):
-            raise SystemExit(f"{path}: missing <!-- lore-connector --> metadata block")
-        _, _, rest = text.partition("<!-- lore-connector")
+        if not text.startswith("<!-- rac-connector"):
+            raise SystemExit(f"{path}: missing <!-- rac-connector --> metadata block")
+        _, _, rest = text.partition("<!-- rac-connector")
         meta_block, _, body = rest.partition("-->")
         meta = _parse_meta(meta_block)
         body = body.lstrip("\n")

@@ -1,4 +1,4 @@
-<!-- lore-connector
+<!-- rac-connector
 name: Mem0
 tagline: documents → server-side embedding; idempotent by container resync
 extra: mem0
@@ -12,12 +12,12 @@ A one-way, outbound push of the `rac export --documents` stream into
 a different subcommand:
 
 ```bash
-pip install 'lore-connectors[mem0]'
+pip install 'rac-connectors[mem0]'
 export MEM0_API_KEY=m0-...
 
-rac export rac/ --documents | lore-connect mem0            # upsert every record
-rac export rac/ --documents | lore-connect mem0 --dry-run  # preview, no API call
-lore-connect mem0 --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect mem0            # upsert every record
+rac export rac/ --documents | rac-connect mem0 --dry-run  # preview, no API call
+rac-connect mem0 --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **Stores the text as-is.** `infer=False` skips Mem0's LLM fact-extraction, so it

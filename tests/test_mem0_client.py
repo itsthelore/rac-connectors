@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.mem0.client import MissingApiKeyError, SdkMem0Client
+from rac_connectors.mem0.client import MissingApiKeyError, SdkMem0Client
 
 
 class _StubMemoryClient:

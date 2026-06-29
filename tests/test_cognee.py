@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.cognee import DEFAULT_CONTAINER, CogneeConnector
-from lore_connectors.records import Record
+from rac_connectors.cognee import DEFAULT_CONTAINER, CogneeConnector
+from rac_connectors.records import Record
 
 
 class FakeCogneeClient:

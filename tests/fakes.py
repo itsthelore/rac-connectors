@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from lore_connectors.supermemory.client import AddResult
+from rac_connectors.supermemory.client import AddResult
 
 
 class FakeSupermemoryClient:

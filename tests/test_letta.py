@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.letta import DEFAULT_CONTAINER, LettaConnector
-from lore_connectors.records import Record
+from rac_connectors.letta import DEFAULT_CONTAINER, LettaConnector
+from rac_connectors.records import Record
 
 
 class FakeLettaClient:

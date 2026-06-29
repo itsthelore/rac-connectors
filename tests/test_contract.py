@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from lore_connectors import (
+from rac_connectors import (
     SUPPORTED_CONTRACT_VERSION,
     ContractVersionWarning,
     check_contract_version,

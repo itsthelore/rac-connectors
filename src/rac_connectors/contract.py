@@ -1,6 +1,6 @@
 """The rac export contract version this connector speaks.
 
-The only cross-repo dependency lore-connectors has on Lore / RAC is the export
+The only cross-repo dependency rac-connectors has on Lore / RAC is the export
 **contract** — the ``schema_version`` carried by ``rac export --documents`` and
 ``--graph`` — not the rac-core *package* version (this connector never imports
 ``rac``). The contract is additive within a major and stable (rac-core ADR-007),

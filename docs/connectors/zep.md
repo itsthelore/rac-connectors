@@ -1,4 +1,4 @@
-<!-- lore-connector
+<!-- rac-connector
 name: Zep
 tagline: documents → a Zep knowledge graph; idempotent by graph resync
 extra: zep
@@ -12,12 +12,12 @@ A one-way, outbound push of the `rac export --documents` stream into
 backends, a different subcommand:
 
 ```bash
-pip install 'lore-connectors[zep]'
+pip install 'rac-connectors[zep]'
 export ZEP_API_KEY=z_...
 
-rac export rac/ --documents | lore-connect zep            # upsert every record
-rac export rac/ --documents | lore-connect zep --dry-run  # preview, no API call
-lore-connect zep --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect zep            # upsert every record
+rac export rac/ --documents | rac-connect zep --dry-run  # preview, no API call
+rac-connect zep --input corpus.jsonl                     # read a file, not stdin
 ```
 
 - **A corpus maps to a Zep graph.** A `source` becomes a Zep `graph_id`; each

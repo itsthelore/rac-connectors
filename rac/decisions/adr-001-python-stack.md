@@ -3,11 +3,11 @@ schema_version: 1
 id: LCON-KVKGQD318KM8
 type: decision
 ---
-# ADR-001: lore-connectors Is a Python Package
+# ADR-001: rac-connectors Is a Python Package
 
 ## Context
 
-`lore-connectors` is the companion that pushes RAC's export payloads into the
+`rac-connectors` is the companion that pushes RAC's export payloads into the
 external memory / RAG / graph backends a team already runs (ADR-073 in
 rac-core). The export contract it consumes is language-agnostic JSON/JSONL
 (`rac export --documents` / `--graph`), so the connector could be written in any
@@ -31,16 +31,16 @@ The forces:
 
 ## Decision
 
-`lore-connectors` is a **Python package** (`lore_connectors`, Python 3.11+),
+`rac-connectors` is a **Python package** (`rac_connectors`, Python 3.11+),
 matching the RAC ecosystem.
 
-- One installable package with a `lore-connect` console entrypoint; one module
+- One installable package with a `rac-connect` console entrypoint; one module
   per backend under it (ADR-073), Supermemory first.
 - Tooling mirrors rac-core: `ruff` for lint, `pytest` for tests, `mypy`
   available; Apache-2.0 licensed to match.
 - The repo dogfoods Lore: its own decisions live in `rac/` and are validated by
   the `rac` CLI.
-- Provider SDKs are **optional extras** (e.g. `lore-connectors[supermemory]`) so
+- Provider SDKs are **optional extras** (e.g. `rac-connectors[supermemory]`) so
   the core install and the whole test-suite stay dependency-free and CI never
   needs a live backend.
 

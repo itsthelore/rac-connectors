@@ -1,4 +1,4 @@
-"""Neo4j graph backend module for lore-connectors."""
+"""Neo4j graph backend module for rac-connectors."""
 
 from __future__ import annotations
 

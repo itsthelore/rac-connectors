@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from lore_connectors.records import Record
-from lore_connectors.supermemory import SupermemoryConnector
-from lore_connectors.supermemory.client import MissingApiKeyError, SdkSupermemoryClient
+from rac_connectors.records import Record
+from rac_connectors.supermemory import SupermemoryConnector
+from rac_connectors.supermemory.client import MissingApiKeyError, SdkSupermemoryClient
 
 from .fakes import FakeSupermemoryClient
 

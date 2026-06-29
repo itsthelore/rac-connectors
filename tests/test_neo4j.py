@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.graph import Graph, GraphEdge, GraphNode
-from lore_connectors.neo4j import Neo4jConnector
+from rac_connectors.graph import Graph, GraphEdge, GraphNode
+from rac_connectors.neo4j import Neo4jConnector
 
 
 class FakeNeo4jClient:

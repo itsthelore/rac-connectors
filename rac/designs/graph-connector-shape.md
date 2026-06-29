@@ -83,7 +83,7 @@ identity.
 
 Auth is read from the environment (`NEO4J_URI`, `NEO4J_USERNAME`,
 `NEO4J_PASSWORD`), never hard-coded. The CLI adds one subcommand:
-`rac export rac/ --graph | lore-connect neo4j`, with the shared `--dry-run`,
+`rac export rac/ --graph | rac-connect neo4j`, with the shared `--dry-run`,
 `--input`, and `--strict` flags.
 
 ## Constraints

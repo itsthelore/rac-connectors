@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
-from lore_connectors.records import Record
-from lore_connectors.zep import DEFAULT_CONTAINER, ZepConnector
+from rac_connectors.records import Record
+from rac_connectors.zep import DEFAULT_CONTAINER, ZepConnector
 
 
 class FakeZepClient:

@@ -6,7 +6,7 @@ import io
 
 import pytest
 
-from lore_connectors import cli
+from rac_connectors import cli
 
 
 def _line(record_id: str = "RAC-1") -> str:

@@ -1,4 +1,4 @@
-"""Letta backend module for lore-connectors."""
+"""Letta backend module for rac-connectors."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Cognee backend module for lore-connectors."""
+"""Cognee backend module for rac-connectors."""
 
 from __future__ import annotations
 
