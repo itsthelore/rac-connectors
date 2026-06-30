@@ -138,6 +138,8 @@ below are generated from those pages, so this README and the pages never drift.
 <!-- GENERATED:CONNECTORS -->
 <!-- Generated from docs/connectors/*.md by scripts/sync_readme.py — do not edit by hand. -->
 
+### Memory & RAG
+
 <details>
 <summary><strong>Supermemory</strong> — documents → server-side embedding, idempotent on the canonical id</summary>
 
@@ -215,35 +217,57 @@ Decision: [`rac/decisions/`](rac/decisions) — ADR-004 (Mem0 backend, resync id
 </details>
 
 <details>
-<summary><strong>Zep</strong> — documents → a Zep knowledge graph; idempotent by graph resync</summary>
+<summary><strong>Qdrant</strong> — documents → external embedding → a Qdrant collection; idempotent on the canonical id</summary>
 
 A one-way, outbound push of the `rac export --documents` stream into
-[Zep Cloud](https://getzep.com). Same stream and flags as the other documents
-backends, a different subcommand:
+[Qdrant](https://qdrant.tech), the open-source vector database.
+
+Qdrant stores vectors but does **not** produce them (unlike Supermemory/Mem0/Zep,
+which embed server-side). So this connector embeds each record's text through a
+**configured external embedding service** — any OpenAI-compatible `/embeddings`
+endpoint, with a [LiteLLM](https://litellm.ai) gateway the reference deployment —
+then upserts the vector. The model and credentials live in that endpoint, never
+in RAC (the engine stays AI-optional, rac-core ADR-002/ADR-066); see
+[ADR-009](rac/decisions/adr-009-vector-store-connectors-embed-externally.md).
 
 ```bash
-pip install 'rac-connectors[zep]'
-export ZEP_API_KEY=z_...
+pip install 'rac-connectors[qdrant]'
+export QDRANT_URL=http://localhost:6333          # and QDRANT_API_KEY if your server needs auth
+export RAC_EMBED_BASE_URL=https://your-litellm/v1 # OpenAI-compatible /embeddings endpoint
+export RAC_EMBED_MODEL=text-embedding-3-small      # whatever your gateway routes
+export RAC_EMBED_API_KEY=sk-...                    # if the endpoint requires auth
 
-rac export rac/ --documents | rac-connect zep            # upsert every record
-rac export rac/ --documents | rac-connect zep --dry-run  # preview, no API call
-rac-connect zep --input corpus.jsonl                     # read a file, not stdin
+rac export rac/ --documents | rac-connect qdrant            # embed + upsert every record
+rac export rac/ --documents | rac-connect qdrant --dry-run  # preview, no embed, no API call
+rac-connect qdrant --input corpus.jsonl                     # read a file, not stdin
 ```
 
-- **A corpus maps to a Zep graph.** A `source` becomes a Zep `graph_id`; each
-  record is added as a `type="text"` episode carrying the canonical `rac_id`,
-  `type`, `status`, and `title` in metadata.
-- **Idempotent by graph resync.** Zep has no per-record upsert key, so each push
-  deletes and recreates the corpus graph, then re-adds — re-running never
-  duplicates.
-- **No embeddings here.** Zep derives its knowledge graph and embeds; the
-  connector only ships text + metadata. Zep's copy is an associative index, not a
-  citation — authoritative text is always re-fetched from Lore.
-- **Auth via `ZEP_API_KEY`** — never hard-coded.
+Each record maps to one Qdrant point:
 
-Decision: [`rac/decisions/`](rac/decisions) — ADR-005 (Zep backend, graph-resync idempotency).
+```
+record → upsert(point_id=uuid5(canonical id),
+                vector=embed(text),
+                payload={rac_id, type, status, title, text, …metadata})
+```
 
-**Full page:** [`docs/connectors/zep.md`](docs/connectors/zep.md)
+| Flag | Meaning |
+|---|---|
+| `--dry-run` | Print what would be sent; embed nothing and call no API. |
+| `--input`, `-i` | Read JSONL from a file (default: stdin; `-` also means stdin). |
+| `--strict` | Fail on a malformed line instead of skipping it. |
+| `--verbose`, `-v` | Print per-record actions on a live push too. |
+
+- **Idempotent on the canonical `id`.** The point id is `uuid5(id)`, so a re-push
+  upserts in place rather than duplicating.
+- **One collection per corpus `source`** (falling back to `lore`); the collection
+  is created on first use with the embedder's vector dimension and cosine distance.
+- **Embeddings live in the external endpoint**, not here. **Pin the embedding
+  model** — the vectors, and the collection's dimension, are tied to it; changing
+  the model means re-embedding the corpus.
+- **Auth via `QDRANT_URL` / `QDRANT_API_KEY`** and the `RAC_EMBED_*` variables —
+  never hard-coded.
+
+**Full page:** [`docs/connectors/qdrant.md`](docs/connectors/qdrant.md)
 
 </details>
 
@@ -278,6 +302,41 @@ rac-connect letta --input corpus.jsonl                     # read a file, not st
 Decision: [`rac/decisions/`](rac/decisions) — ADR-006 (Letta backend, archive-resync idempotency).
 
 **Full page:** [`docs/connectors/letta.md`](docs/connectors/letta.md)
+
+</details>
+
+### Knowledge graph
+
+<details>
+<summary><strong>Zep</strong> — documents → a Zep knowledge graph; idempotent by graph resync</summary>
+
+A one-way, outbound push of the `rac export --documents` stream into
+[Zep Cloud](https://getzep.com). Same stream and flags as the other documents
+backends, a different subcommand:
+
+```bash
+pip install 'rac-connectors[zep]'
+export ZEP_API_KEY=z_...
+
+rac export rac/ --documents | rac-connect zep            # upsert every record
+rac export rac/ --documents | rac-connect zep --dry-run  # preview, no API call
+rac-connect zep --input corpus.jsonl                     # read a file, not stdin
+```
+
+- **A corpus maps to a Zep graph.** A `source` becomes a Zep `graph_id`; each
+  record is added as a `type="text"` episode carrying the canonical `rac_id`,
+  `type`, `status`, and `title` in metadata.
+- **Idempotent by graph resync.** Zep has no per-record upsert key, so each push
+  deletes and recreates the corpus graph, then re-adds — re-running never
+  duplicates.
+- **No embeddings here.** Zep derives its knowledge graph and embeds; the
+  connector only ships text + metadata. Zep's copy is an associative index, not a
+  citation — authoritative text is always re-fetched from Lore.
+- **Auth via `ZEP_API_KEY`** — never hard-coded.
+
+Decision: [`rac/decisions/`](rac/decisions) — ADR-005 (Zep backend, graph-resync idempotency).
+
+**Full page:** [`docs/connectors/zep.md`](docs/connectors/zep.md)
 
 </details>
 

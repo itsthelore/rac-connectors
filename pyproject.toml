@@ -53,6 +53,10 @@ letta = ["letta-client>=1,<2"]
 # The live Cognee push needs the cognee pipeline; the core install and the
 # fake-driven test-suite stay dependency-free. Pinned to the verified v1 major.
 cognee = ["cognee>=1,<2"]
+# The live Qdrant push needs the official client; the core install and the
+# fake-driven test-suite stay dependency-free. Embeddings come from an external
+# endpoint over stdlib HTTP (no SDK), so only qdrant-client is required here.
+qdrant = ["qdrant-client>=1.7,<2"]
 dev = ["pytest>=7.0", "ruff", "mypy"]
 
 [project.scripts]
@@ -91,5 +95,6 @@ module = [
     "zep_cloud.*",
     "letta_client.*",
     "cognee.*",
+    "qdrant_client.*",
 ]
 ignore_missing_imports = true
