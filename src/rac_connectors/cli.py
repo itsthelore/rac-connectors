@@ -20,6 +20,7 @@ from .base import Connector, PushSummary
 from .cognee import CogneeConnector
 from .cognee.client import MissingCredentialsError as CogneeMissingCredentialsError
 from .cognee.client import client_from_env as cognee_client_from_env
+from .embedding import MissingEmbeddingConfigError, embedder_from_env
 from .graph import MalformedGraphError, parse_graph
 from .letta import LettaConnector
 from .letta.client import MissingCredentialsError as LettaMissingCredentialsError
@@ -30,6 +31,9 @@ from .mem0.client import client_from_env as mem0_client_from_env
 from .neo4j import Neo4jConnector
 from .neo4j.client import MissingCredentialsError
 from .neo4j.client import client_from_env as neo4j_client_from_env
+from .qdrant import QdrantConnector
+from .qdrant.client import MissingCredentialsError as QdrantMissingCredentialsError
+from .qdrant.client import client_from_env as qdrant_client_from_env
 from .records import MalformedRecordError, Record, parse_documents
 from .supermemory import SupermemoryConnector
 from .supermemory.client import MissingApiKeyError, client_from_env
@@ -107,6 +111,36 @@ def _run_mem0(args: argparse.Namespace) -> int:
             try:
                 connector = Mem0Connector(mem0_client_from_env())
             except Mem0MissingApiKeyError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 2
+        try:
+            summary = _push_with_skips(
+                connector, stream, dry_run=args.dry_run, strict=args.strict
+            )
+        except MalformedRecordError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    finally:
+        if owned:
+            stream.close()
+
+    if args.dry_run or args.verbose:
+        for action in summary.actions:
+            print(action)
+    print(summary.summary_line(), file=sys.stderr)
+    return 0
+
+
+def _run_qdrant(args: argparse.Namespace) -> int:
+    connector: Connector = QdrantConnector()
+    stream, owned = _open_stream(args.input)
+    try:
+        if not args.dry_run:
+            try:
+                connector = QdrantConnector(
+                    qdrant_client_from_env(), embedder_from_env()
+                )
+            except (QdrantMissingCredentialsError, MissingEmbeddingConfigError) as exc:
                 print(f"error: {exc}", file=sys.stderr)
                 return 2
         try:
@@ -326,6 +360,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print per-record actions on a live push too.",
     )
     mem.set_defaults(func=_run_mem0)
+
+    qd = sub.add_parser(
+        "qdrant",
+        help="Embed documents and upsert into Qdrant (idempotent on canonical id).",
+    )
+    qd.add_argument(
+        "--input",
+        "-i",
+        default=None,
+        help="JSONL file to read (default: stdin). '-' also means stdin.",
+    )
+    qd.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be sent without embedding or calling the API.",
+    )
+    qd.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on a malformed line instead of skipping it.",
+    )
+    qd.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print per-record actions on a live push too.",
+    )
+    qd.set_defaults(func=_run_qdrant)
 
     zep = sub.add_parser(
         "zep",
