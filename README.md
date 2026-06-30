@@ -267,6 +267,36 @@ record → upsert(point_id=uuid5(canonical id),
 - **Auth via `QDRANT_URL` / `QDRANT_API_KEY`** and the `RAC_EMBED_*` variables —
   never hard-coded.
 
+### Live smoke test
+
+The connector is wired and unit-tested against fakes, but the live path (a real
+Qdrant plus a real embeddings endpoint) is unproven until someone runs it — this
+page is `drafted (live run pending)`. To validate end to end:
+
+1. **Start Qdrant:** `docker run -p 6333:6333 qdrant/qdrant`.
+2. **Pick an embeddings endpoint** — a LiteLLM (or any OpenAI-compatible)
+   `/embeddings` gateway; note the model and its vector dimension.
+3. **Configure the environment:**
+
+   ```bash
+   export QDRANT_URL=http://localhost:6333       # + QDRANT_API_KEY if needed
+   export RAC_EMBED_BASE_URL=https://your-litellm/v1
+   export RAC_EMBED_MODEL=text-embedding-3-small
+   export RAC_EMBED_API_KEY=sk-...                # if the endpoint requires it
+   ```
+
+4. **Dry-run first** (no embed, no calls) — confirms records and collections:
+   `rac export rac/ --documents | rac-connect qdrant --dry-run`.
+5. **Live push:** `rac export rac/ --documents | rac-connect qdrant`.
+6. **Verify in Qdrant:** the collection (named after the corpus `source`,
+   default `lore`) exists with the model's vector size; the point count equals the
+   artifact count; a point's payload carries `rac_id`, `type`, `status`, `title`,
+   and `text`.
+7. **Re-run the push** and confirm the point count is unchanged — the upsert is
+   idempotent on `uuid5(rac_id)`.
+
+Then flip this page's `status` to `shipped`.
+
 **Full page:** [`docs/connectors/qdrant.md`](docs/connectors/qdrant.md)
 
 </details>
