@@ -1,6 +1,7 @@
 <!-- rac-connector
 name: Letta
 tagline: documents → Letta archives (cloud or self-hosted); idempotent by archive resync
+category: Memory & RAG
 extra: letta
 order: 40
 status: drafted (live run pending)

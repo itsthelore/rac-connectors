@@ -1,6 +1,7 @@
 <!-- rac-connector
 name: Zep
 tagline: documents → a Zep knowledge graph; idempotent by graph resync
+category: Knowledge graph
 extra: zep
 order: 30
 status: drafted (live run pending)

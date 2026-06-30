@@ -1,6 +1,7 @@
 <!-- rac-connector
 name: Cognee
 tagline: documents → a Cognee knowledge graph; content-hash idempotent
+category: Knowledge graph
 extra: cognee
 order: 50
 status: drafted (live run pending)
