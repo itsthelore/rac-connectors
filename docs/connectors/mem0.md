@@ -1,6 +1,7 @@
 <!-- rac-connector
 name: Mem0
 tagline: documents → server-side embedding; idempotent by container resync
+category: Memory & RAG
 extra: mem0
 order: 20
 status: drafted (live run pending)

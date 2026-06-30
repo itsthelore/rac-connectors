@@ -1,6 +1,7 @@
 <!-- rac-connector
 name: Neo4j
 tagline: graph → typed nodes & edges via Cypher MERGE; idempotent on the canonical id
+category: Knowledge graph
 extra: neo4j
 order: 60
 status: drafted (live run pending)

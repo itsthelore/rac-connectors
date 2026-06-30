@@ -16,11 +16,18 @@ page::
     python scripts/sync_readme.py            # rewrite the README region
     python scripts/sync_readme.py --check     # CI: fail if the README is stale
 
+Connectors are grouped in the README by ``category`` (kind, e.g. "Memory & RAG",
+"Knowledge graph") rather than by direction, so a provider that does both ingest
+and export (e.g. Atlassian) sits in a single kind group; its direction is
+described in its own page. Kind headings are ordered by the lowest ``order`` in
+each kind.
+
 Each page starts with an HTML-comment metadata block (hidden when rendered)::
 
     <!-- rac-connector
     name: Supermemory
     tagline: one-line summary shown in the <summary>
+    category: Memory & RAG
     extra: supermemory
     order: 10
     status: shipped
@@ -56,6 +63,7 @@ _NOTE = (
 class Page:
     name: str
     tagline: str
+    category: str
     order: int
     body: str
     path: Path
@@ -121,6 +129,7 @@ def load_pages() -> list[Page]:
             Page(
                 name=name,
                 tagline=tagline,
+                category=meta.get("category", "Other"),
                 order=int(meta.get("order", "999")),
                 body=body,
                 path=path,
@@ -132,20 +141,31 @@ def load_pages() -> list[Page]:
 
 def render(pages: list[Page]) -> str:
     blocks = [START, _NOTE, ""]
+    # Group by kind (category). Pages arrive sorted by (order, name); the kind
+    # headings are data-driven — each kind sorts by the lowest `order` among its
+    # pages — so a new page (e.g. an Atlassian provider) slots its kind into
+    # place via its `order` alone, with no change here. A provider that spans
+    # both ingest and export lives in one kind group; its direction is described
+    # in its own page, not the grouping.
+    groups: dict[str, list[Page]] = {}
     for page in pages:
-        rel = page.path.relative_to(ROOT).as_posix()
-        body = _rewrite_links(page.body, page.path.parent)
-        blocks += [
-            "<details>",
-            f"<summary><strong>{page.name}</strong> — {page.tagline}</summary>",
-            "",
-            body,
-            "",
-            f"**Full page:** [`{rel}`]({rel})",
-            "",
-            "</details>",
-            "",
-        ]
+        groups.setdefault(page.category, []).append(page)
+    for category in sorted(groups, key=lambda c: min(p.order for p in groups[c])):
+        blocks += [f"### {category}", ""]
+        for page in groups[category]:
+            rel = page.path.relative_to(ROOT).as_posix()
+            body = _rewrite_links(page.body, page.path.parent)
+            blocks += [
+                "<details>",
+                f"<summary><strong>{page.name}</strong> — {page.tagline}</summary>",
+                "",
+                body,
+                "",
+                f"**Full page:** [`{rel}`]({rel})",
+                "",
+                "</details>",
+                "",
+            ]
     blocks.append(END)
     return "\n".join(blocks)
 

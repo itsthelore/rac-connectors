@@ -1,6 +1,7 @@
 <!-- rac-connector
 name: Supermemory
 tagline: documents → server-side embedding, idempotent on the canonical id
+category: Memory & RAG
 extra: supermemory
 order: 10
 status: shipped
